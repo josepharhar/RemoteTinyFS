@@ -3,6 +3,10 @@
 
 #include <iostream>
 
+void HandleMessage(const std::string& message) {
+  std::cout << "HandleMessage \"" << message << "\"" << std::endl;
+}
+
 int main(int argc, char** argv) {
   easywsclient::WebSocket::pointer websocket =
     easywsclient::WebSocket::from_url("ws://arhar.net:8080/foo");
@@ -17,6 +21,7 @@ int main(int argc, char** argv) {
 
   while (websocket->getReadyState() != easywsclient::WebSocket::CLOSED) {
     websocket->poll();
+    websocket->dispatch(HandleMessage);
   }
 
   delete websocket;
