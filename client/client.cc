@@ -1,24 +1,24 @@
-#include <iostream>
-#include <string>
-#include <boost/asio.hpp>
+#include <stdint.h>
+#include "easywsclient.hpp"
 
-#include "beast/core/to_string.hpp"
-#include "beast/websocket.hpp"
+#include <iostream>
 
 int main(int argc, char** argv) {
-  std::cout << "client starting" << std::endl;
+  easywsclient::WebSocket::pointer websocket =
+    easywsclient::WebSocket::from_url("ws://arhar.net:8080/foo");
+  if (!websocket) {
+    std::cout << "!websocket, exiting" << std::endl;
+    return 1;
+  }
 
-  const std::string& host = "127.0.0.1";
-  boost::asio::io_service io_service;
-  boost::asio::ip::tcp::resolver resolver{io_service};
-  boost::asio::ip::tcp::socket socket{io_service};
-  boost::asio::connect(socket,
-      resolver.resolve(boost::asio::ip::tcp::resolver::query{host, "8080"}));
+  std::cout << "sending message" << std::endl;
+  websocket->send("hello from c++ in the CSL!");
+  std::cout << "sent message" << std::endl;
 
-  beast::websocket::stream<boost::asio::ip::tcp::socket&> websocket{socket};
-  websocket.handshake(host, "/foo");
-  websocket.write(boost::asio::buffer("websocket message from c++"));
+  while (websocket->getReadyState() != easywsclient::WebSocket::CLOSED) {
+    websocket->poll();
+  }
 
-  websocket.close(beast::websocket::close_code::normal);
-  std::cout << "client ending" << std::endl;
+  delete websocket;
+  return 0;
 }

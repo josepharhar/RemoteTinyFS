@@ -1,7 +1,7 @@
-FLAGS = -I beast/include -std=c++11
-LINKFLAGS = -lboost_system -lpthread
-
 all: client
 
-client: client.cc
-	g++ $(FLAGS) client.cc -o client $(LINKFLAGS)
+client: client.cc easywsclient.o
+	g++ client.cc easywsclient.o -o client
+
+easywsclient.o: easywsclient.hpp easywsclient.cpp
+	g++ -c easywsclient.cpp
