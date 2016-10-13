@@ -1,4 +1,4 @@
-package foo;
+package com.tinyfs.handler;
 
 import java.io.IOException;
 

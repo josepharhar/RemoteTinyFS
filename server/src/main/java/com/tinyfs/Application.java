@@ -1,4 +1,4 @@
-package foo;
+package com.tinyfs;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
