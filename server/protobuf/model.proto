@@ -1,0 +1,33 @@
+syntax = "proto3";
+package tinyfs;
+
+option java_package = "com.tinyfs.model";
+option java_outer_classname = "ServiceModel";
+
+import "google/protobuf/any.proto";
+
+message ClientRequest {
+  google.protobuf.Any request = 1;
+}
+
+// token:    Encrypted, Serialized client credentials
+// fs_names: The file systems this available to this client
+message ClientRegistrationRequest {
+  bytes token = 1;
+  repeated string fs_names = 2;
+}
+
+// sessionId: A unique token handed to a client to identify itself
+//            on future calls.
+message ClientRegistrationResponse {
+  string sessionId = 1;
+}
+
+// sessionId:   The unique token given on client registration.
+// fileSystem:  The target file sytstem to write to.
+// message:     The entire message to write (no random access yet).
+message WriteRequest {
+  string sessionId = 1;
+  string fileSystem = 2;
+  bytes message = 3;
+}
