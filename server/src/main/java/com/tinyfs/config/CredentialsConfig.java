@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.tinyfs.credentials.ClientCredentialsProvider;
 import com.tinyfs.credentials.CredentialsObfuscator;
+import com.tinyfs.credentials.cache.ClientCacheAdapter;
 import com.tinyfs.exception.CredentialsException;
 
 @Configuration
@@ -38,5 +39,10 @@ public class CredentialsConfig {
   @Bean
   ClientCredentialsProvider clientCredentialsProvider() {
     return new ClientCredentialsProvider();
+  }
+
+  @Bean
+  ClientCacheAdapter clientCacheAdapter() {
+    return new ClientCacheAdapter();
   }
 }

@@ -1,11 +1,14 @@
 package com.tinyfs.exception;
 
-public class CredentialsException extends Exception {
+public class CredentialsException extends TinyFSException {
 
   private static final long serialVersionUID = 1L;
 
   public CredentialsException(Exception e) {
     super(e);
+  }
+
+  public CredentialsException() {
   }
 
 }

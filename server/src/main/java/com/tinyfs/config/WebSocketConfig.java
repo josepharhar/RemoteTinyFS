@@ -1,25 +1,31 @@
 package com.tinyfs.config;
 
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import com.tinyfs.handler.FooHandler;
+import com.tinyfs.handler.ClientHandler;
 
 @Configuration
 @EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketConfigurer, ApplicationContextAware {
+
+  private ApplicationContext applicationContext;
 
   @Override
-  public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-    registry.addHandler(fooHandler(), "/foo").setAllowedOrigins("*");
+  public void registerWebSocketHandlers(
+      final WebSocketHandlerRegistry registry) {
+    registry
+      .addHandler(applicationContext.getBean(ClientHandler.class), "/client")
+      .setAllowedOrigins("*");
   }
 
-  @Bean
-  public WebSocketHandler fooHandler() {
-    return new FooHandler();
+  @Override
+  public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
   }
 }
