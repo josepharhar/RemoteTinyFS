@@ -4,9 +4,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 
 // TODO: Make this class thread safe, find a better way to store known client credentials.
+@Component
 public class ClientCredentialsProvider {
   private Set<ClientCredentials> knownClientCredentials;
 
