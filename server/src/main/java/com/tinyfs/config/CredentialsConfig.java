@@ -8,11 +8,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tinyfs.credentials.ClientCredentialsProvider;
-import com.tinyfs.credentials.CredentialsObfuscator;
-import com.tinyfs.credentials.cache.ClientCacheAdapter;
-import com.tinyfs.exception.CredentialsException;
-
 @Configuration
 public class CredentialsConfig {
 
@@ -26,23 +21,7 @@ public class CredentialsConfig {
   private static final byte[] DES_KEY_DECODED = Base64.getDecoder().decode(DES_KEY_RAW);
 
   @Bean
-  SecretKey secretKey() {
+  public SecretKey secretKey() {
     return new SecretKeySpec(DES_KEY_DECODED, 0, DES_KEY_DECODED.length, "DES");
-  }
-
-  @Bean
-  CredentialsObfuscator obfuscator(final SecretKey secretKey)
-      throws CredentialsException {
-    return new CredentialsObfuscator(secretKey);
-  }
-
-  @Bean
-  ClientCredentialsProvider clientCredentialsProvider() {
-    return new ClientCredentialsProvider();
-  }
-
-  @Bean
-  ClientCacheAdapter clientCacheAdapter() {
-    return new ClientCacheAdapter();
   }
 }

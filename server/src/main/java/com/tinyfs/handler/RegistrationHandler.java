@@ -3,6 +3,8 @@ package com.tinyfs.handler;
 import java.util.List;
 import java.util.UUID;
 
+import javax.inject.Inject;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 
@@ -15,6 +17,7 @@ public class RegistrationHandler {
 
   private final ClientCacheAdapter clientCacheAdapter;
 
+  @Inject
   public RegistrationHandler(
       final ClientCacheAdapter clientCacheAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;

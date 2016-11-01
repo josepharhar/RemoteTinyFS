@@ -2,6 +2,8 @@ package com.tinyfs.validation;
 
 import java.util.Optional;
 
+import javax.inject.Inject;
+
 import org.springframework.stereotype.Component;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -14,6 +16,7 @@ public class ClientRegistrationRequestValidator {
 
   private final CredentialsObfuscator credentialsObfuscator;
 
+  @Inject
   public ClientRegistrationRequestValidator(final CredentialsObfuscator credentialsObfuscator) {
     this.credentialsObfuscator = credentialsObfuscator;
   }

@@ -7,17 +7,22 @@ import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
 
 import com.google.common.base.Throwables;
 import com.tinyfs.auth.ClientCredentialsProto.AccessCredentials;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.exception.CredentialsException;
 
+@Component
 public class CredentialsObfuscator {
 
   private final Cipher encryptCipher;
   private final Cipher decryptCipher;
 
+  @Inject
   public CredentialsObfuscator(final SecretKey credentialsKey)
       throws CredentialsException {
     try {

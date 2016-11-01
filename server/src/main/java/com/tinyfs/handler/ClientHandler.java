@@ -1,8 +1,10 @@
 package com.tinyfs.handler;
 
-import java.io.IOException;
 import java.util.Optional;
 
+import javax.inject.Inject;
+
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
@@ -16,12 +18,14 @@ import com.tinyfs.model.ServiceModel.ClientRequest;
 import com.tinyfs.model.ServiceModel.WriteRequest;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
+@Component
 public class ClientHandler extends TextWebSocketHandler {
 
   private final ClientRegistrationRequestValidator registrationRequestValidator;
   private final RegistrationHandler registrationHandler;
   private final WriteHandler writeHandler;
 
+  @Inject
   public ClientHandler(
       final ClientRegistrationRequestValidator registrationRequestValidator,
       final RegistrationHandler registrationHandler,

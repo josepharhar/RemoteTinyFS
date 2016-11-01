@@ -2,6 +2,8 @@ package com.tinyfs.handler;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ public class WriteHandler {
 
   private final ClientCacheAdapter clientCacheAdapter;
 
+  @Inject
   public WriteHandler(
       final ClientCacheAdapter clientCacheAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
