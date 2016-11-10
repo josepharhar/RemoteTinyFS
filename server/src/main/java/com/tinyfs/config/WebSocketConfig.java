@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+import org.springframework.web.socket.handler.ExceptionWebSocketHandlerDecorator;
 
 import com.tinyfs.handler.ClientHandler;
 
@@ -20,7 +21,7 @@ public class WebSocketConfig implements WebSocketConfigurer, ApplicationContextA
   public void registerWebSocketHandlers(
       final WebSocketHandlerRegistry registry) {
     registry
-      .addHandler(applicationContext.getBean(ClientHandler.class), "/client")
+      .addHandler(applicationContext.getBean(ExceptionWebSocketHandlerDecorator.class), "/client")
       .setAllowedOrigins("*");
   }
 
