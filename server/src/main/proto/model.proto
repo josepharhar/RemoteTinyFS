@@ -30,4 +30,21 @@ message WriteRequest {
   string sessionId = 1;
   string fileSystem = 2;
   bytes message = 3;
+  int32 offset = 4;
+}
+
+// sessionId:   The unique token given on client registration.
+// fileSystem:  The target file sytstem to write to.
+// offset:      The offset in the file system to read from.
+// size:        The size, in number of bytes, to read from the file system.
+message ReadRequest {
+  string sessionId = 1;
+  string fileSystem = 2;
+  int32 offset = 3;
+  int32 size = 4;
+}
+
+// message: The message returned as a byte array.
+message ReadResponse {
+  bytes message = 1;
 }

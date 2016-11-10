@@ -12,24 +12,24 @@ import com.tinyfs.dao.FileAdapter;
 import com.tinyfs.exception.UnregisteredFileSystemException;
 
 @Component
-public class WriteHandler {
+public class ReadHandler {
 
   private final ClientCacheAdapter clientCacheAdapter;
   private final FileAdapter fileAdapter;
 
   @Inject
-  public WriteHandler(
+  public ReadHandler(
       final ClientCacheAdapter clientCacheAdapter,
       final FileAdapter fileSystemAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
     this.fileAdapter = fileSystemAdapter;
   }
 
-  public void performWriteRequest(
+  public byte[] performReadRequest(
       final String sessionId,
       final String fileSystem,
-      final byte[] message,
-      final int offset) throws UnregisteredFileSystemException {
+      final int offset,
+      final int size) throws UnregisteredFileSystemException {
     List<String> allowedFileSystems = clientCacheAdapter
       .getRegisteredFileSystems(sessionId);
 
@@ -37,6 +37,6 @@ public class WriteHandler {
       throw new UnregisteredFileSystemException();
     }
 
-    fileAdapter.writeToFile(fileSystem, message, offset);
+    return fileAdapter.readFromFile(fileSystem, offset, size);
   }
 }

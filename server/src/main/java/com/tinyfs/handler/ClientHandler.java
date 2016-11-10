@@ -12,11 +12,14 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.exception.InvalidArgumentException;
 import com.tinyfs.model.ServiceModel.ClientRegistrationRequest;
 import com.tinyfs.model.ServiceModel.ClientRequest;
+import com.tinyfs.model.ServiceModel.ReadRequest;
+import com.tinyfs.model.ServiceModel.ReadResponse;
 import com.tinyfs.model.ServiceModel.WriteRequest;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
@@ -26,15 +29,18 @@ public class ClientHandler extends TextWebSocketHandler {
   private final ClientRegistrationRequestValidator registrationRequestValidator;
   private final RegistrationHandler registrationHandler;
   private final WriteHandler writeHandler;
+  private final ReadHandler readHandler;
 
   @Inject
   public ClientHandler(
       final ClientRegistrationRequestValidator registrationRequestValidator,
       final RegistrationHandler registrationHandler,
-      final WriteHandler writeHandler) {
+      final WriteHandler writeHandler,
+      final ReadHandler readHandler) {
     this.registrationRequestValidator = registrationRequestValidator;
     this.registrationHandler = registrationHandler;
     this.writeHandler = writeHandler;
+    this.readHandler = readHandler;
   }
 
   /**
@@ -79,7 +85,23 @@ public class ClientHandler extends TextWebSocketHandler {
       writeHandler.performWriteRequest(
         writeRequest.getSessionId(),
         writeRequest.getFileSystem(),
-        writeRequest.getMessage().toString());
+        writeRequest.getMessage().toByteArray(),
+        writeRequest.getOffset());
+    } else if (operationParameters.is(ReadRequest.class)) {
+      ReadRequest readRequest =
+        operationParameters.unpack(ReadRequest.class);
+
+      session.sendMessage(
+          new TextMessage(
+            ReadResponse.newBuilder()
+              .setMessage(ByteString.copyFrom(
+                readHandler.performReadRequest(
+                  readRequest.getSessionId(),
+                  readRequest.getFileSystem(),
+                  readRequest.getOffset(),
+                  readRequest.getSize())))
+              .build()
+              .toByteArray()));
     } else {
       throw new InvalidArgumentException("Unrecognized operation.");
     }
