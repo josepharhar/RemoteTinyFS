@@ -9,6 +9,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
@@ -35,14 +37,29 @@ public class ClientHandler extends TextWebSocketHandler {
     this.writeHandler = writeHandler;
   }
 
+  /**
+   * Wraps the dispatch to catch and print exceptions.
+   */
   @Override
   public void handleTextMessage(
       final WebSocketSession session,
       final TextMessage message)
           throws Exception {
+    try {
+      dispatchTextMessage(session, message);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Throwables.propagate(e);
+    }
+  }
+
+  public void dispatchTextMessage(
+      final WebSocketSession session,
+      final TextMessage message)
+          throws Exception {
     ClientRequest request =
       toClientRequest(message.getPayload().getBytes())
-        .orElseThrow(() -> new InvalidArgumentException());
+        .orElseThrow(() -> new InvalidArgumentException("Undecipherable request."));
 
     Any operationParameters = request.getRequest();
     if (operationParameters.is(ClientRegistrationRequest.class)) {

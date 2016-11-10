@@ -28,7 +28,7 @@ public class WriteHandler {
     List<String> allowedFileSystems = clientCacheAdapter
       .getRegisteredFileSystems(sessionId);
 
-    if (StringUtils.isEmpty(fileSystem) || !allowedFileSystems.contains(allowedFileSystems)) {
+    if (StringUtils.isEmpty(fileSystem) || !allowedFileSystems.contains(fileSystem)) {
       throw new UnregisteredFileSystemException();
     }
 

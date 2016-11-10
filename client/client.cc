@@ -9,7 +9,7 @@ void HandleMessage(const std::string& message) {
 
 int main(int argc, char** argv) {
   easywsclient::WebSocket::pointer websocket =
-    easywsclient::WebSocket::from_url("ws://localhost:8080/register");
+    easywsclient::WebSocket::from_url("ws://localhost:8080/client");
   if (!websocket) {
     std::cout << "!websocket, exiting" << std::endl;
     return 1;
