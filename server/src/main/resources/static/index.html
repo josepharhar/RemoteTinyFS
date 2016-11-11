@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+   <title>Disk Visualizer</title>
+
+   <!-- jquery -->
+   <script src="vendor/jquery-2.1.4/jquery.min.js"></script>
+
+   <!-- bootstrap -->
+   <script src="vendor/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+   <link href="vendor/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet">
+   
+   <!-- jcanvas  -->
+   <script src="vendor/jcanvas.min.js"></script>
+
+   <!-- javascript and css sheet -->
+   <link href="static/custom.css" rel="stylesheet">
+   <script src="static/binaryTransport.js"></script>
+   <script src="static/data.js"></script>
+   <script src="static/draw.js"></script>
+   <script src="static/config.js"></script>
+   <script src="static/load_disk.js"></script>
+   <script src="static/history.js"></script>
+   <script src="static/block_modal.js"></script>
+   <script src="static/block_meta.js"></script>
+   <script src="static/disk_meta.js"></script>
+   <script src="static/draw_utils.js"></script>
+   <script src="static/disk_config.js"></script>
+</head>
+<body>
+   <!-- Fixed navbar -->
+   <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+         <div class="navbar-header">
+            <a class="navbar-brand" href="#">Poly FS Visualizer</a>
+         </div>
+         <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+               <li><a data-toggle="modal" href="#diskModal">Choose Disk</a></li>
+               <li><a data-toggle="modal" href="#instructionsModal">Instructions</a></li>
+               <li><a data-toggle="modal" href="#creditsModal">About</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            </ul>
+         </div><!--/.nav-collapse -->
+      </div>
+   </nav>
+
+   <!-- main page container -->
+   <div class="container">
+      <div class="row">
+
+         <!-- left column -->
+         <div class="col-md-3">
+         
+            <!-- disk metadata panel -->
+            <div class="panel panel-primary">
+               <div class="panel-heading"> 
+                  <p>Disk Metadata</p>
+               </div>
+               <div class="panel-body">
+                  <p id="diskmeta">Disk Metadata</p>
+               </div>
+            </div>
+            
+            <!-- history -->
+            <div class="panel panel-primary">
+               <div class="panel-heading"> 
+                  <p>History</p>
+               </div>
+               <div class="panel-body">
+                  <p>Quickly navigate to your disks</p>
+                  <ul class="list-unstyled" syle="padding: 30px" id="history"><ul>
+               </div>
+            </div>
+         </div>
+
+         <!-- main panel -->
+         <div class="col-md-6">
+            <div id="alert-placeholder"></div>
+            <script>
+               warning = function(message) {
+                  var id = $("#alert-placeholder > div").length;
+                  $('#alert-placeholder').append(
+                     '<div class="alert alert-warning fade in" id="warning-' + id + '">' +
+                        '<a href="#" class="close" data-dismiss="alert">&times;</a>' +
+                        '<strong>Warning!</strong> ' + message +
+                     '</div>' 
+                  )
+                  setTimeout(function(){ $('#warning-' + id).alert('close') }, 10000);
+               }
+            </script>
+            <div id="fsCanvasDiv"></div>
+         </div>
+         
+         <!-- right column -->
+         <div class="col-md-3">
+            <!-- block metadata panel -->
+            <div class="panel panel-primary">
+               <div class="panel-heading"> 
+                  <p>Block Metadata</p>
+               </div>
+               <div class="panel-body">
+                  <p id="blockmeta"></p>
+               </div>
+            </div>
+            
+            <!-- legend -->
+            <div class="panel panel-primary">
+               <div class="panel-heading"> 
+                  <p>Block Legend</p>
+               </div>
+               <div class="panel-body" id="legendCanvasDiv">
+                  <!-- the canvas for the legend will be placed here -->
+               </div>
+            </div>
+
+         </div>
+      
+      </div>
+   </div>
+
+   <!-- blockModal -->
+   <div id="blockModal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-lg">
+         <input type="hidden" id="block-number">
+
+         <!-- Modal content-->
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal">&times;</button>
+               <h4 id="block-modal-title" class="modal-title">Block Modal</h4>
+            </div>
+            <div class="modal-body" id="blockCanvasDiv">
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+
+      </div>
+   </div>
+   <script>
+      $( "#blockModal" ).on('show.bs.modal', function(){
+         polyFS_visualizer.block_modal.update_block(polyFS_visualizer.data.get_block($("#block-number").val()));
+         $("#block-modal-title").text("block " + $("#block-number").val());
+      });
+   </script>
+   
+   <!-- diskSelectModal -->
+   <div id="diskModal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-lg">
+
+         <!-- Modal content-->
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal">&times;</button>
+               <h4 id="block-modal-title" class="modal-title">Disk Selection</h4>
+            </div>
+            <div class="modal-body">
+               <label for="usr">What is the name of your disk?</label>
+               <input type="text" class="form-control" id="diskname">
+               <p id="error"></p>
+               <button id="loadDisk" class="btn btn-default">Load</button>
+               <script>
+                  $('#loadDisk').click(function(){
+                     var disk = $('#diskname').val();
+                     polyFS_visualizer.load_disk.load(disk);
+                  });
+               </script>
+            </div>
+            <div class="modal-footer">
+               <button type="button" id="diskModal-close" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+
+      </div>
+   </div>
+
+   <!-- instructionsModal -->
+   <div id="instructionsModal" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+         <input type="hidden">
+
+         <!-- Modal content-->
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal">&times;</button>
+               <h4 id="block-modal-title" class="modal-title">Instructions Modal</h4>
+            </div>
+            <div class="modal-body">
+               <h5>Loading a Disk</h5>
+               <h6>You can load a disk by clicking "Choose Disk" in upper left corner</h6>
+               <h5>FS Level View</h5>
+               <h6>The view on this page is for the file system as a whole
+                  The entire filesystem is broken into blocks which are displayed below
+                  The color of the block represents the type of block and placing the
+                  cursor over a block will cause the metadata to be displayed on the left
+                  additionally clicking a block will bring up the block level view</h6>
+               <h5>Block Level View</h5>
+               <h6>The block level view shows the exact data in two formats: hex on the
+                  left and binary on the right. Again the bytes are colored by the type
+                  of metadata they contain. Link bytes are clickable in order to go to
+                  the block that it links to</h6>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+
+      </div>
+   </div>
+
+   <!-- creditsModal -->
+   <div id="creditsModal" class="modal fade" role="dialog">
+      <div class="modal-dialog modal-md">
+         <input type="hidden">
+
+         <!-- Modal content-->
+         <div class="modal-content">
+            <div class="modal-header">
+               <button type="button" class="close" data-dismiss="modal">&times;</button>
+               <h4 id="block-modal-title" class="modal-title">About Modal</h4>
+            </div>
+            <div class="modal-body text-center">
+               <h3>Paul Fallon<h3>
+               <h3>Foaad Khosmood<h3>
+               <h3>2016<h3>
+               <p>View the source on <a href="https://github.com/pfallon/PolyFS_Visualizer">Github</a></p>
+            </div>
+            <div class="modal-footer">
+               <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+         </div>
+
+      </div>
+   </div>
+
+   <script>
+      polyFS_visualizer.load_disk.reload_page();
+   </script>
+
+</body>
+</html>

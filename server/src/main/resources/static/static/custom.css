@@ -1,0 +1,10 @@
+body {
+   min-height: 2000px;
+   padding-top: 70px;
+}
+
+.dark {
+   /*background: #CCC;*/
+   min-height: 1000px;
+   padding: 0px;
+}
