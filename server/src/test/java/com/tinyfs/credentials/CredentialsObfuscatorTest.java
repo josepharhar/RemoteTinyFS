@@ -20,17 +20,10 @@ public class CredentialsObfuscatorTest {
   public void test() throws Exception {
     CredentialsObfuscator obfuscator =
       new CredentialsObfuscator(new SecretKeySpec(DES_KEY_DECODED, 0, DES_KEY_DECODED.length, "DES"));
-    for (byte letter : ClientRegistrationRequest.newBuilder()
-        .setToken(ByteString.copyFrom(
+    System.out.println(new String(
             obfuscator.obfuscateClientCredentials(ClientCredentials.newBuilder()
                 .setClientId("avilan-client")
-                .build()))
-        )
-        .addFsNames("dumb")
-        .build().toByteArray()) {
-      System.out.print(letter + ", ");
-    }
-    System.out.println(0);
+                .build())));
 
     for (byte letter : WriteRequest.newBuilder()
           .setSessionId("0110")
