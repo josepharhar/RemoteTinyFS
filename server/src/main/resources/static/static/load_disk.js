@@ -1,14 +1,16 @@
 // This file controls the UI of the page
 
 polyFS_visualizer.load_disk = {
-   load: function (disk) {
+   load: function (disk, token) {
       console.log("loading: " + disk);
       $.ajax({
          type: "GET",
          dataType: 'binary',
          processData: false,
          responseType:'arraybuffer',
-         url: "disks/" + disk,
+         //url: "disks/" + disk,
+         url: "disk",
+         data: "disk=" + disk + "&token=" + token
       })
       .done(function(result) {
          polyFS_visualizer.disk_config.load(disk);
