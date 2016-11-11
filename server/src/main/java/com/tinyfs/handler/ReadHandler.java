@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
 import com.tinyfs.dao.FileAdapter;
-import com.tinyfs.exception.UnregisteredFileSystemException;
+import com.tinyfs.exception.UnregisteredFileException;
 
 @Component
 public class ReadHandler {
@@ -20,23 +20,23 @@ public class ReadHandler {
   @Inject
   public ReadHandler(
       final ClientCacheAdapter clientCacheAdapter,
-      final FileAdapter fileSystemAdapter) {
+      final FileAdapter fileAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
-    this.fileAdapter = fileSystemAdapter;
+    this.fileAdapter = fileAdapter;
   }
 
   public byte[] performReadRequest(
       final String sessionId,
-      final String fileSystem,
+      final String filename,
       final int offset,
-      final int size) throws UnregisteredFileSystemException {
-    List<String> allowedFileSystems = clientCacheAdapter
-      .getRegisteredFileSystems(sessionId);
+      final int size) throws UnregisteredFileException {
+    List<String> allowedFiles = clientCacheAdapter
+      .getRegisteredFiles(sessionId);
 
-    if (StringUtils.isEmpty(fileSystem) || !allowedFileSystems.contains(fileSystem)) {
-      throw new UnregisteredFileSystemException();
+    if (StringUtils.isEmpty(filename) || !allowedFiles.contains(filename)) {
+      throw new UnregisteredFileException();
     }
 
-    return fileAdapter.readFromFile(fileSystem, offset, size);
+    return fileAdapter.readFromFile(filename, offset, size);
   }
 }

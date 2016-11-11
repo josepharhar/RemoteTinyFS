@@ -15,10 +15,10 @@ public class FileAdapter {
 
   private static final int MAX_SYSTEM_SIZE = 5000;
 
-  private LoadingCache<String, Byte[]> fileSystemCache;
+  private LoadingCache<String, Byte[]> fileCache;
 
   public FileAdapter() {
-    this.fileSystemCache =
+    this.fileCache =
       CacheBuilder.newBuilder()
         .maximumSize(20)
         .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -27,10 +27,10 @@ public class FileAdapter {
   }
 
   public void writeToFile(
-      final String fileSystemName,
+      final String filename,
       final byte[] message,
       final int offset) {
-    Byte[] file = fileSystemCache.getUnchecked(fileSystemName);
+    Byte[] file = fileCache.getUnchecked(filename);
 
     for (int i = 0; i < message.length; i++) {
       file[offset + i] = message[i];
@@ -38,10 +38,10 @@ public class FileAdapter {
   }
 
   public byte[] readFromFile(
-      final String fileSystemName,
+      final String filename,
       final int offset,
       final int size) {
-    Byte[] file = fileSystemCache.getUnchecked(fileSystemName);
+    Byte[] file = fileCache.getUnchecked(filename);
 
     byte[] message = new byte[size];
     for (int i = 0; i < size; i++) {

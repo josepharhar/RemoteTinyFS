@@ -84,7 +84,7 @@ public class ClientHandler extends TextWebSocketHandler {
 
       writeHandler.performWriteRequest(
         writeRequest.getSessionId(),
-        writeRequest.getFileSystem(),
+        writeRequest.getFile(),
         writeRequest.getMessage().toByteArray(),
         writeRequest.getOffset());
     } else if (operationParameters.is(ReadRequest.class)) {
@@ -97,7 +97,7 @@ public class ClientHandler extends TextWebSocketHandler {
               .setMessage(ByteString.copyFrom(
                 readHandler.performReadRequest(
                   readRequest.getSessionId(),
-                  readRequest.getFileSystem(),
+                  readRequest.getFile(),
                   readRequest.getOffset(),
                   readRequest.getSize())))
               .build()

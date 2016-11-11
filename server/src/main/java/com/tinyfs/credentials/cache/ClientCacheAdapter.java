@@ -24,11 +24,11 @@ public class ClientCacheAdapter {
 
   public void registerClient(
       final String clientId,
-      final List<String> fileSystemNames) {
-    clientCache.put(clientId, fileSystemNames);
+      final List<String> filenames) {
+    clientCache.put(clientId, filenames);
   }
 
-  public List<String> getRegisteredFileSystems(
+  public List<String> getRegisteredFiles(
       final String clientId) {
     return Optional.ofNullable(clientCache.getIfPresent(clientId))
       .orElse(ImmutableList.of());

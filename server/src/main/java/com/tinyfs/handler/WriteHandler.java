@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
 import com.tinyfs.dao.FileAdapter;
-import com.tinyfs.exception.UnregisteredFileSystemException;
+import com.tinyfs.exception.UnregisteredFileException;
 
 @Component
 public class WriteHandler {
@@ -20,23 +20,23 @@ public class WriteHandler {
   @Inject
   public WriteHandler(
       final ClientCacheAdapter clientCacheAdapter,
-      final FileAdapter fileSystemAdapter) {
+      final FileAdapter fileAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
-    this.fileAdapter = fileSystemAdapter;
+    this.fileAdapter = fileAdapter;
   }
 
   public void performWriteRequest(
       final String sessionId,
-      final String fileSystem,
+      final String filename,
       final byte[] message,
-      final int offset) throws UnregisteredFileSystemException {
-    List<String> allowedFileSystems = clientCacheAdapter
-      .getRegisteredFileSystems(sessionId);
+      final int offset) throws UnregisteredFileException {
+    List<String> allowedFiles = clientCacheAdapter
+      .getRegisteredFiles(sessionId);
 
-    if (StringUtils.isEmpty(fileSystem) || !allowedFileSystems.contains(fileSystem)) {
-      throw new UnregisteredFileSystemException();
+    if (StringUtils.isEmpty(filename) || !allowedFiles.contains(filename)) {
+      throw new UnregisteredFileException();
     }
 
-    fileAdapter.writeToFile(fileSystem, message, offset);
+    fileAdapter.writeToFile(filename, message, offset);
   }
 }

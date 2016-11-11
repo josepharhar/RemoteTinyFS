@@ -25,12 +25,12 @@ public class RegistrationHandler {
 
   public TextMessage registerClient(
       final ClientCredentials clientCredentials,
-      final List<String> fileSystemNames) {
+      final List<String> fileNames) {
     String sessionId = UUID.randomUUID().toString();
 
     clientCacheAdapter.registerClient(
       sessionId,
-      fileSystemNames);
+      fileNames);
 
     ClientRegistrationResponse response =
       ClientRegistrationResponse.newBuilder()
