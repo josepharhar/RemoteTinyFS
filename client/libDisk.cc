@@ -3,6 +3,8 @@
 #include <iostream>
 #include <map>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string>
 
 #include "easywsclient.hpp"
 #include "model.pb.h"
@@ -12,12 +14,13 @@
 using easywsclient::WebSocket;
 
 static const char websocket_address[] = "ws://home.arhar.net:4880/client";
-
-static WebSocket::pointer websocket = NULL;
-static bool registration_request_returned = false;
-static bool read_request_returned = false;
-static std::string session_id;
+// TODO remove this temporary token
 static const char token[] = "I2gb1RHVrx1P8kJCNMx9Rw==";
+
+static WebSocket::pointer g_websocket = NULL;
+static bool g_registration_request_returned = false;
+static bool g_read_request_returned = false;
+static std::string g_session_id;
 
 static std::map<int, std::string> disk_id_to_name;
 static int next_free_disk_id = 0;
@@ -27,21 +30,21 @@ static void RegistrationCallback(const std::string& message) {
   if (response.ParseFromString(message)) {
     // successfully parsed message
     std::cout << __FUNCTION__ << " \"" << response.sessionid() << "\"" << std::endl;
-    session_id = response.sessionid();
+    g_session_id = response.sessionid();
   } else {
     std::cout << __FUNCTION__ << " failed to parse ClientRegistrationResponse" << std::endl;
   }
-  registration_request_returned = true;
+  g_registration_request_returned = true;
 }
 
 static void ReadRequestCallback(const std::string& message) {
   tinyfs::ReadResponse response;
   if (response.ParseFromString(message)) {
-    std:: cout << __FUNCTION__ << " \"" << response.message() << "\"" << std::endl;
+    std::cout << __FUNCTION__ << " \"" << response.message() << "\"" << std::endl;
   } else {
     std::cout << __FUNCTION__ << " failed to parse ReadResponse" << std::endl;
   }
-  read_request_returned = true;
+  g_read_request_returned = true;
 }
 
 /**
@@ -67,8 +70,8 @@ static void ReadRequestCallback(const std::string& message) {
  * nBytes. The return value is -1 on failure or a disk number on success.
  */
 int openDisk(char* filename, int nBytes) {
-  websocket = WebSocket::from_url(websocket_address);
-  if (!websocket) {
+  g_websocket = WebSocket::from_url(websocket_address);
+  if (!g_websocket) {
     std::cout << "!websocket, exiting" << std::endl;
     return 1;
   }
@@ -84,14 +87,14 @@ int openDisk(char* filename, int nBytes) {
   registration_request_protobuf.mutable_request()->PackFrom(registration_protobuf);
   std::string protobuf_string;
   registration_request_protobuf.SerializeToString(&protobuf_string);
-  websocket->send(protobuf_string);
+  g_websocket->send(protobuf_string);
 
   std::cout << "sent message" << std::endl;
 
-  while (!registration_request_returned) {
+  while (!g_registration_request_returned) {
     std::cout << "polling" << std::endl;
-    websocket->poll(WEBSOCKET_TIMEOUT_MS);
-    websocket->dispatch(RegistrationCallback);
+    g_websocket->poll(WEBSOCKET_TIMEOUT_MS);
+    g_websocket->dispatch(RegistrationCallback);
   }
 }
 
@@ -113,19 +116,19 @@ int readBlock(int disk, int bNum, void* block) {
   tinyfs::ReadRequest read_protobuf;
   tinyfs::ClientRequest read_request_protobuf;
   std::string protobuf_string;
-  read_protobuf.set_sessionid(session_id);
+  read_protobuf.set_sessionid(g_session_id);
   read_protobuf.set_filesystem(fs_name);
   read_protobuf.set_offset(0);
   read_protobuf.set_size(bNum);
   read_request_protobuf.mutable_request()->PackFrom(read_protobuf);
   read_request_protobuf.SerializeToString(&protobuf_string);
-  websocket->send(protobuf_string);
+  g_websocket->send(protobuf_string);
 
   //while (websocket->getReadyState() != easywsclient::WebSocket::CLOSED) {
-  while(!read_request_returned) {
+  while(!g_read_request_returned) {
     std::cout << "polling for read request callback" << std::endl;
-    websocket->poll(WEBSOCKET_TIMEOUT_MS);
-    websocket->dispatch(ReadRequestCallback);
+    g_websocket->poll(WEBSOCKET_TIMEOUT_MS);
+    g_websocket->dispatch(ReadRequestCallback);
   }
 }
 
@@ -145,13 +148,13 @@ int writeBlock(int disk, int bNum, void* block) {
   tinyfs::WriteRequest write_protobuf;
   tinyfs::ClientRequest write_request_protobuf;
   std::string protobuf_string;
-  write_protobuf.set_sessionid(session_id);
+  write_protobuf.set_sessionid(g_session_id);
   write_protobuf.set_filesystem(fs_name);
   write_protobuf.set_message((char*) block);
   write_request_protobuf.mutable_request()->PackFrom(write_protobuf);
   write_request_protobuf.SerializeToString(&protobuf_string);
-  websocket->send(protobuf_string);
+  g_websocket->send(protobuf_string);
   // TODO should we block for a response when sending write requests? yeah, probably.
   
-  websocket->poll(WEBSOCKET_TIMEOUT_MS); // ?
+  g_websocket->poll(WEBSOCKET_TIMEOUT_MS); // ?
 }
