@@ -8,19 +8,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
-import com.tinyfs.dao.FileAdapter;
+import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.exception.UnregisteredFileException;
 
 @Component
 public class WriteHandler {
 
   private final ClientCacheAdapter clientCacheAdapter;
-  private final FileAdapter fileAdapter;
+  private final HighlyAvailableFileAdapter fileAdapter;
 
   @Inject
   public WriteHandler(
       final ClientCacheAdapter clientCacheAdapter,
-      final FileAdapter fileAdapter) {
+      final HighlyAvailableFileAdapter fileAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
     this.fileAdapter = fileAdapter;
   }
