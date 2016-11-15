@@ -52,10 +52,10 @@ public class FileAdapter {
   }
 
   private Byte[] newFile() {
-    return
-      IntStream.of(MAX_SYSTEM_SIZE)
-        .mapToObj(i -> Byte.valueOf("0"))
-        .collect(Collectors.toList())
-        .toArray(new Byte[0]);
+    Byte[] file = new Byte[MAX_SYSTEM_SIZE];
+    for (int i = 0; i < file.length; i++) {
+      file[i] = 0;
+    }
+    return file;
   }
 }
