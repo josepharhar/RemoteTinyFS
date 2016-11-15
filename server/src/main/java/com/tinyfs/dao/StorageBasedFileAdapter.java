@@ -107,8 +107,11 @@ public class StorageBasedFileAdapter implements FileAdapter {
   }
 
   private char[] toCharArray(final byte[] message) {
-    return ByteBuffer.wrap(message)
-      .asCharBuffer()
-      .array();
+    CharBuffer charBuffer = ByteBuffer.wrap(message).asCharBuffer();
+ 
+    char[] charArray = new char[charBuffer.limit()];
+    charBuffer.get(charArray);
+
+    return charArray;
   }
 }
