@@ -15,7 +15,8 @@ else
 	PROTOBUF_INSTALL_PATH = $(PROTOBUF_INSTALL_PATH_$(ARCH))
 endif
 
-PROTOBUF_STATIC_LIBRARY = $(PROTOBUF_INSTALL_PATH)/lib/libprotobuf-lite.a
+#PROTOBUF_STATIC_LIBRARY = $(PROTOBUF_INSTALL_PATH)/lib/libprotobuf-lite.a
+PROTOBUF_STATIC_LIBRARY = $(PROTOBUF_INSTALL_PATH)/lib/libprotobuf.a
 PKG_CONFIG_PATH = $(PROTOBUF_INSTALL_PATH)/lib/pkgconfig
 PROTOBUF_CFLAGS = $(shell env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 PROTOBUF_LIBS = $(shell env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf)
@@ -23,7 +24,8 @@ PROTOBUF_LIBS = $(shell env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs
 all: tinyfs
 
 tinyfs: tinyfs.c libDisk.o easywsclient.o model.pb.o
-	gcc $(PROTOBUF_CFLAGS) tinyfs.c libDisk.o easywsclient.o model.pb.o $(PROTOBUF_LIBS) -lstdc++ -o tinyfs
+	#gcc $(PROTOBUF_CFLAGS) tinyfs.c libDisk.o easywsclient.o model.pb.o $(PROTOBUF_LIBS) -lstdc++ -o tinyfs
+	gcc $(PROTOBUF_CFLAGS) tinyfs.c libDisk.o easywsclient.o model.pb.o $(PROTOBUF_STATIC_LIBRARY) -lstdc++ -o tinyfs
 
 #tinyfs: tinyfs.c libDisk.a
 	#gcc tinyfs.c libDisk.a -o tinyfs
@@ -34,8 +36,8 @@ tinyfs.o: tinyfs.c libDisk.h
 libDisk.a: libDisk.o easywsclient.o model.pb.o
 	ar rvs libDisk.a libDisk.o easywsclient.o model.pb.o
 
-libDisk.o: libDisk.cc libDisk.h
-	g++ -c libDisk.cc
+libDisk.o: libDisk.cc libDisk.h model.pb.h
+	g++ $(PROTOBUF_CFLAGS) -c libDisk.cc
 
 client-dynamic: client.o easywsclient.o model.pb.o
 	g++ client.o easywsclient.o model.pb.o -o client $(PROTOBUF_LIBS)
@@ -53,4 +55,7 @@ model.pb.o: model.pb.cc
 	g++ $(PROTOBUF_CFLAGS) -c model.pb.cc
 
 model.pb.cc: model.proto
+	protoc --cpp_out=. model.proto
+
+model.pb.h: model.proto
 	protoc --cpp_out=. model.proto

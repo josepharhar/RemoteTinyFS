@@ -117,7 +117,7 @@ int readBlock(int disk, int bNum, void* block) {
   tinyfs::ClientRequest read_request_protobuf;
   std::string protobuf_string;
   read_protobuf.set_sessionid(g_session_id);
-  read_protobuf.set_filesystem(fs_name);
+  read_protobuf.set_file(fs_name);
   read_protobuf.set_offset(0);
   read_protobuf.set_size(bNum);
   read_request_protobuf.mutable_request()->PackFrom(read_protobuf);
@@ -149,7 +149,7 @@ int writeBlock(int disk, int bNum, void* block) {
   tinyfs::ClientRequest write_request_protobuf;
   std::string protobuf_string;
   write_protobuf.set_sessionid(g_session_id);
-  write_protobuf.set_filesystem(fs_name);
+  write_protobuf.set_file(fs_name);
   write_protobuf.set_message((char*) block);
   write_request_protobuf.mutable_request()->PackFrom(write_protobuf);
   write_request_protobuf.SerializeToString(&protobuf_string);
