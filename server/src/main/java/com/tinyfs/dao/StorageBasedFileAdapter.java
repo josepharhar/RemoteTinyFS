@@ -17,10 +17,10 @@ public class StorageBasedFileAdapter implements FileAdapter {
 
   @Override
   public void writeToFile(
-      final String fileSystemName,
+      final String fileName,
       final byte[] message,
       final int offset) {
-    File file = new File(fileSystemName);
+    File file = new File(fileName);
 
     boolean newFile = false;
     try {
@@ -46,11 +46,11 @@ public class StorageBasedFileAdapter implements FileAdapter {
 
   @Override
   public byte[] readFromFile(
-      final String fileSystemName,
+      final String fileName,
       final int offset,
       final int size) {
 
-    File file = new File(fileSystemName);
+    File file = new File(fileName);
 
     boolean newFile = false;
     try {

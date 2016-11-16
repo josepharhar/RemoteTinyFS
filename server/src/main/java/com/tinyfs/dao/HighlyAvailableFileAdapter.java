@@ -13,7 +13,7 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
   private final StorageBasedFileAdapter storageBasedFileAdapter;
 
-  private LoadingCache<String, Byte[]> fileSystemCache;
+  private LoadingCache<String, Byte[]> fileCache;
 
   public HighlyAvailableFileAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
@@ -21,7 +21,7 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
     this.highlyAvailableRemovalListener = highlyAvailableRemovalListener;
     this.storageBasedFileAdapter = storageBasedFileAdapter;
 
-    this.fileSystemCache =
+    this.fileCache =
       CacheBuilder.newBuilder()
         .maximumSize(100)
         .expireAfterWrite(5, TimeUnit.MINUTES)
@@ -31,10 +31,10 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   }
 
   public void writeToFile(
-      final String fileSystemName,
+      final String fileName,
       final byte[] message,
       final int offset) {
-    Byte[] file = fileSystemCache.getUnchecked(fileSystemName);
+    Byte[] file = fileCache.getUnchecked(fileName);
 
     for (int i = 0; i < message.length; i++) {
       file[offset + i] = message[i];
@@ -42,10 +42,10 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   }
 
   public byte[] readFromFile(
-      final String fileSystemName,
+      final String fileName,
       final int offset,
       final int size) {
-    Byte[] file = fileSystemCache.getUnchecked(fileSystemName);
+    Byte[] file = fileCache.getUnchecked(fileName);
 
     byte[] message = new byte[size];
     for (int i = 0; i < size; i++) {
@@ -56,7 +56,7 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   }
 
   public void closeFile(final String fileName) {
-    fileSystemCache.invalidate(fileName);
+    fileCache.invalidate(fileName);
   }
 
   private Byte[] newFile(final String fileName) {
