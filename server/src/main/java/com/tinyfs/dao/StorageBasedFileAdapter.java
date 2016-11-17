@@ -1,12 +1,10 @@
 package com.tinyfs.dao;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.file.Files;
+import java.util.Arrays;
 
 import org.springframework.stereotype.Component;
 
@@ -30,6 +28,7 @@ public class StorageBasedFileAdapter implements FileAdapter {
       Throwables.propagate(e);
     }
 
+    System.out.println(newFile);
     if (newFile) {
       writeToFile(
         file,
@@ -39,7 +38,7 @@ public class StorageBasedFileAdapter implements FileAdapter {
         0);
     }
 
-    if (message == null) {
+    if (message != null) {
       writeToFile(file, message, offset);
     }
   }
@@ -71,18 +70,19 @@ public class StorageBasedFileAdapter implements FileAdapter {
         message,
         0);
 
-      return message;
+      return Arrays.copyOf(message, size);
     }
 
-    try (BufferedReader bufferedReader = Files.newBufferedReader(file.toPath())) {
-      char[] message =
-        CharBuffer
-          .allocate(MAX_FILE_SIZE)
+    try (RandomAccessFile raFile = new RandomAccessFile(file, "r")) {
+      byte[] message =
+        ByteBuffer
+          .allocate(size)
           .array();
 
-      bufferedReader.read(message);
+      raFile.seek(offset);
+      raFile.read(message);
 
-      return new String(message).getBytes();
+      return message;
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
@@ -95,23 +95,12 @@ public class StorageBasedFileAdapter implements FileAdapter {
       final File file,
       final byte[] message,
       final int offset) {
-    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(file.toPath())) {
-      bufferedWriter.write(
-        toCharArray(message),
-        offset,
-        message.length / 2);
+    try (RandomAccessFile raFile = new RandomAccessFile(file, "rw")) {
+      raFile.seek(offset);
+      raFile.write(message);
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
     }
-  }
-
-  private char[] toCharArray(final byte[] message) {
-    CharBuffer charBuffer = ByteBuffer.wrap(message).asCharBuffer();
- 
-    char[] charArray = new char[charBuffer.limit()];
-    charBuffer.get(charArray);
-
-    return charArray;
   }
 }
