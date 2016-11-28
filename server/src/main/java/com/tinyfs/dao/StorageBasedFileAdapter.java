@@ -28,7 +28,6 @@ public class StorageBasedFileAdapter implements FileAdapter {
       Throwables.propagate(e);
     }
 
-    System.out.println(newFile);
     if (newFile) {
       writeToFile(
         file,

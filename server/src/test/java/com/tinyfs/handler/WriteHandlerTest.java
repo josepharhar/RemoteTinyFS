@@ -2,14 +2,11 @@ package com.tinyfs.handler;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-
 import org.junit.Test;
 
 import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.dao.HighlyAvailableRemovalListener;
 import com.tinyfs.dao.StorageBasedFileAdapter;
-
 
 public class WriteHandlerTest {
   @Test

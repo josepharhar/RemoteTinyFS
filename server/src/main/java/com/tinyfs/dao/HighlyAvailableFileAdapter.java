@@ -1,8 +1,9 @@
 package com.tinyfs.dao;
 
-import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -34,10 +35,15 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
       final String fileName,
       final byte[] message,
       final int offset) {
-    Byte[] file = fileCache.getUnchecked(fileName);
+    try {
+      Byte[] file = fileCache.get(fileName);
 
-    for (int i = 0; i < message.length; i++) {
-      file[offset + i] = message[i];
+      for (int i = 0; i < message.length; i++) {
+        file[offset + i] = message[i];
+      }
+    } catch (ExecutionException e) {
+      e.printStackTrace();
+      Throwables.propagate(e);
     }
   }
 
@@ -59,9 +65,18 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
     fileCache.invalidate(fileName);
   }
 
+  public void clearFileCache() {
+    fileCache.invalidateAll();
+  }
+
   private Byte[] newFile(final String fileName) {
-    return Arrays
-      .asList(storageBasedFileAdapter.readFromFile(fileName, 0, MAX_FILE_SIZE))
-      .toArray(new Byte[0]);
+    byte[] message = storageBasedFileAdapter.readFromFile(fileName, 0, MAX_FILE_SIZE);
+    Byte[] byteArr = new Byte[message.length];
+
+    for (int i = 0; i < message.length; i++) {
+      byteArr[i] = new Byte(message[i]);
+    }
+
+    return byteArr;
   }
 }

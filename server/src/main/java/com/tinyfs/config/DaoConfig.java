@@ -9,7 +9,7 @@ import com.tinyfs.dao.StorageBasedFileAdapter;
 
 @Configuration
 public class DaoConfig {
-  @Bean
+  @Bean(destroyMethod = "clearFileCache")
   public HighlyAvailableFileAdapter highlyAvailableFileAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
       final StorageBasedFileAdapter storageBasedFileAdapter) {
