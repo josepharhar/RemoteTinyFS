@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+  <!-- 
+  Log4j2 levels:
+  0    OFF
+  100  FATAL
+  200  ERROR
+  ...
+  MAX ALL  
+   -->
+  <CustomLevels>
+  <!-- Will not report to appenders filtering below ERROR -->
+  <CustomLevel name="CREDENTIALS" intLevel = "250" />
+  </CustomLevels>
+
+  <Appenders>
+    <Console name="ConsoleAppender" target="SYSTEM_OUT">
+      <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+      <Filters>
+         <ThresholdFilter level="ERROR" onMatch="ACCEPT" />
+      </Filters>
+    </Console>
+    <File name="FileAppender" fileName="logs/TinyFS.log">
+      <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
+    </File>
+    <File name="CredentialsAppender" fileName="logs/Credentials.log">
+      <PatternLayout pattern="%msg%n"/>
+      <Filters>
+      <ThresholdFilter level="CREDENTIALS" onMatch="ACCEPT" />
+      </Filters>
+    </File>
+  </Appenders>
+  <Loggers>
+    <Root level="info" additivity="false">
+      <AppenderRef ref="ConsoleAppender"/>
+      <AppenderRef ref="FileAppender"/>
+      <AppenderRef ref="CredentialsAppender"/>
+    </Root>
+  </Loggers>
+</Configuration>
