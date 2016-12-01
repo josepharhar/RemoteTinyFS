@@ -31,6 +31,7 @@ public class CredentialsObfuscator {
 
       encryptCipher.init(Cipher.ENCRYPT_MODE, credentialsKey);
       decryptCipher.init(Cipher.DECRYPT_MODE, credentialsKey);
+
     } catch (NoSuchAlgorithmException|NoSuchPaddingException|InvalidKeyException e) {
       throw new CredentialsException(e);
     }
