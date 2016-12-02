@@ -14,7 +14,7 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
   private final StorageBasedFileAdapter storageBasedFileAdapter;
 
-  private LoadingCache<String, Byte[]> fileCache;
+  private LoadingCache<FileKey, Byte[]> fileCache;
 
   public HighlyAvailableFileAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
@@ -27,16 +27,16 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
         .maximumSize(100)
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .removalListener(highlyAvailableRemovalListener)
-        .<String, Byte[]> build(
+        .<FileKey, Byte[]> build(
           CacheLoader.from(this::newFile));
   }
 
   public void writeToFile(
-      final String fileName,
+      final FileKey fileKey,
       final byte[] message,
       final int offset) {
     try {
-      Byte[] file = fileCache.get(fileName);
+      Byte[] file = fileCache.get(fileKey);
 
       for (int i = 0; i < message.length; i++) {
         file[offset + i] = message[i];
@@ -48,10 +48,10 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
   }
 
   public byte[] readFromFile(
-      final String fileName,
+      final FileKey fileKey,
       final int offset,
       final int size) {
-    Byte[] file = fileCache.getUnchecked(fileName);
+    Byte[] file = fileCache.getUnchecked(fileKey);
 
     byte[] message = new byte[size];
     for (int i = 0; i < size; i++) {
@@ -61,16 +61,17 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
     return message;
   }
 
-  public void closeFile(final String fileName) {
-    fileCache.invalidate(fileName);
+  public void closeFile(final FileKey fileKey) {
+    fileCache.invalidate(fileKey);
   }
 
   public void clearFileCache() {
     fileCache.invalidateAll();
   }
 
-  private Byte[] newFile(final String fileName) {
-    byte[] message = storageBasedFileAdapter.readFromFile(fileName, 0, MAX_FILE_SIZE);
+  private Byte[] newFile(final FileKey fileKey) {
+    byte[] message =
+      storageBasedFileAdapter.readFromFile(fileKey, 0, MAX_FILE_SIZE);
     Byte[] byteArr = new Byte[message.length];
 
     for (int i = 0; i < message.length; i++) {

@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
+import com.tinyfs.dao.FileKey;
 import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.exception.UnregisteredFileException;
 
@@ -30,13 +31,19 @@ public class ReadHandler {
       final String filename,
       final int offset,
       final int size) throws UnregisteredFileException {
-    List<String> allowedFiles = clientCacheAdapter
-      .getRegisteredFiles(sessionId);
+    String registeredUser = clientCacheAdapter
+      .getRegisteredUsername(sessionId);
 
-    if (StringUtils.isEmpty(filename) || !allowedFiles.contains(filename)) {
+    if (StringUtils.isEmpty(filename) || StringUtils.isEmpty(registeredUser)) {
       throw new UnregisteredFileException();
     }
 
-    return fileAdapter.readFromFile(filename, offset, size);
+    return fileAdapter.readFromFile(
+      FileKey.builder()
+        .username(registeredUser)
+        .fileName(filename)
+        .build(),
+      offset,
+      size);
   }
 }

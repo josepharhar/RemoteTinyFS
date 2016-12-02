@@ -8,7 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import com.tinyfs.auth.ClientCredentialsProto.AccessCredentials;
+import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.credentials.CredentialsObfuscator;
 import com.tinyfs.credentials.user.AllowableUsers;
 
@@ -29,7 +29,7 @@ public class CredentialGenerationHandler {
   @PostConstruct
   public void generateCredentials() {
     for (String username : AllowableUsers.ALLOWABLE_USERS) {
-      String token = new String(credentialsObfuscator.obfuscateAccessCredentials(toAccessCredentials(username)));
+      String token = new String(credentialsObfuscator.obfuscateClientCredentials(toClientCredentials(username)));
 
       LOGGER.log(
         CREDENTIALS_LEVEL,
@@ -37,9 +37,9 @@ public class CredentialGenerationHandler {
     }
   }
 
-  private AccessCredentials toAccessCredentials(final String username) {
-    return AccessCredentials.newBuilder()
-      .setName(username)
+  private ClientCredentials toClientCredentials(final String username) {
+    return ClientCredentials.newBuilder()
+      .setUsername(username)
       .build();
   }
 }
