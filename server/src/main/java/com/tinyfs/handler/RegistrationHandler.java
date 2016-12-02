@@ -1,6 +1,5 @@
 package com.tinyfs.handler;
 
-import java.util.List;
 import java.util.UUID;
 
 import javax.inject.Inject;
@@ -24,13 +23,10 @@ public class RegistrationHandler {
   }
 
   public TextMessage registerClient(
-      final ClientCredentials clientCredentials,
-      final List<String> fileNames) {
+      final String username) {
     String sessionId = UUID.randomUUID().toString();
 
-    clientCacheAdapter.registerClient(
-      sessionId,
-      fileNames);
+    clientCacheAdapter.registerClient(sessionId, username);
 
     ClientRegistrationResponse response =
       ClientRegistrationResponse.newBuilder()
