@@ -74,9 +74,7 @@ public class ClientHandler extends TextWebSocketHandler {
         registrationRequestValidator.toClientCredentials(registrationRequest.getToken().toByteArray());
 
       session.sendMessage(
-        registrationHandler.registerClient(
-          clientCredentials,
-          registrationRequest.getFsNamesList()));
+        registrationHandler.registerClient(clientCredentials.getUsername()));
     } else if (operationParameters.is(WriteRequest.class)) {
       WriteRequest writeRequest =
         operationParameters.unpack(WriteRequest.class);

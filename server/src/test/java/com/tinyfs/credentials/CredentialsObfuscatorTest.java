@@ -8,7 +8,6 @@ import org.junit.Test;
 
 import com.google.protobuf.ByteString;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
-import com.tinyfs.model.ServiceModel.ClientRegistrationRequest;
 import com.tinyfs.model.ServiceModel.WriteRequest;
 
 public class CredentialsObfuscatorTest {
@@ -22,7 +21,7 @@ public class CredentialsObfuscatorTest {
       new CredentialsObfuscator(new SecretKeySpec(DES_KEY_DECODED, 0, DES_KEY_DECODED.length, "DES"));
     System.out.println(new String(
             obfuscator.obfuscateClientCredentials(ClientCredentials.newBuilder()
-                .setClientId("avilan-client")
+                .setUsername("avilan")
                 .build())));
 
     for (byte letter : WriteRequest.newBuilder()

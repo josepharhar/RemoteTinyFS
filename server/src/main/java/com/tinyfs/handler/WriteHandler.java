@@ -1,13 +1,12 @@
 package com.tinyfs.handler;
 
-import java.util.List;
-
 import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
+import com.tinyfs.dao.FileKey;
 import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.exception.UnregisteredFileException;
 
@@ -30,13 +29,19 @@ public class WriteHandler {
       final String filename,
       final byte[] message,
       final int offset) throws UnregisteredFileException {
-    List<String> allowedFiles = clientCacheAdapter
-      .getRegisteredFiles(sessionId);
+    String registeredUser = clientCacheAdapter
+      .getRegisteredUsername(sessionId);
 
-    if (StringUtils.isEmpty(filename) || !allowedFiles.contains(filename)) {
+    if (StringUtils.isEmpty(filename) || StringUtils.isEmpty(registeredUser)) {
       throw new UnregisteredFileException();
     }
 
-    fileAdapter.writeToFile(filename, message, offset);
+    fileAdapter.writeToFile(
+      FileKey.builder()
+        .username(registeredUser)
+        .fileName(filename)
+        .build(),
+      message,
+      offset);
   }
 }

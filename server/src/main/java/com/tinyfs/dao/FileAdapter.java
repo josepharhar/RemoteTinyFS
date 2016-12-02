@@ -5,12 +5,12 @@ public interface FileAdapter {
   public static final int MAX_FILE_SIZE = 5000;
 
   public void writeToFile(
-      final String fileName,
+      final FileKey fileKey,
       final byte[] message,
       final int offset);
 
   public byte[] readFromFile(
-      final String fileName,
+      final FileKey fileKey,
       final int offset,
       final int size);
 }
