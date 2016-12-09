@@ -128,15 +128,21 @@
 
     <plugins>
       <plugin>
-        <groupId>org.xolstice.maven.plugins</groupId>
-        <artifactId>protobuf-maven-plugin</artifactId>
-        <version>0.5.0</version>
+        <groupId>com.github.os72</groupId>
+        <artifactId>protoc-jar-maven-plugin</artifactId>
+        <version>3.1.0.1</version>
         <executions>
           <execution>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
+              <goal>run</goal>
             </goals>
+            <configuration>
+              <protocVersion>3.1.0</protocVersion>
+              <inputDirectories>
+                <include>src/main/proto</include>
+              </inputDirectories>
+            </configuration>
           </execution>
         </executions>
       </plugin>
