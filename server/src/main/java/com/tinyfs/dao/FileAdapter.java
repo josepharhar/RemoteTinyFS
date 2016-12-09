@@ -2,7 +2,8 @@ package com.tinyfs.dao;
 
 public interface FileAdapter {
 
-  public static final int MAX_FILE_SIZE = 5000;
+  // BLOCKSIZE * MAX_SUPPORTED_BLOCKS from TinyFS
+  public static final int MAX_FILE_SIZE = 256 * 256;
 
   public void writeToFile(
       final FileKey fileKey,

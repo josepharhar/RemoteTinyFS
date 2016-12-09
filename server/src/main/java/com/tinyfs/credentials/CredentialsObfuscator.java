@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Throwables;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.exception.CredentialsException;
+import com.tinyfs.exception.InvalidCredentialsException;
 
 @Component
 public class CredentialsObfuscator {
@@ -79,7 +80,7 @@ public class CredentialsObfuscator {
       credentials =
         parseFunction.parseFrom(decodeByteArray(fromBase64(obfuscatedCredentials)));
     } catch (Exception e) {
-      Throwables.propagate(e);
+      throw new InvalidCredentialsException(e);
     }
 
     return credentials;

@@ -1,13 +1,11 @@
 package com.tinyfs.handler;
 
-import java.util.Optional;
-
 import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import com.google.common.base.Throwables;
 import com.google.protobuf.Any;
@@ -23,7 +21,7 @@ import com.tinyfs.model.ServiceModel.WriteRequest;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @Component
-public class ClientHandler extends TextWebSocketHandler {
+public class ClientHandler extends BinaryWebSocketHandler {
 
   private final ClientRegistrationRequestValidator registrationRequestValidator;
   private final RegistrationHandler registrationHandler;
@@ -46,25 +44,28 @@ public class ClientHandler extends TextWebSocketHandler {
    * Wraps the dispatch to catch and print exceptions.
    */
   @Override
-  public void handleTextMessage(
-      final WebSocketSession session,
-      final TextMessage message)
+  public void handleBinaryMessage(
+      WebSocketSession session,
+      BinaryMessage message)
           throws Exception {
     try {
-      dispatchTextMessage(session, message);
+      dispatchBinaryMessage(session, message);
     } catch (Exception e) {
       e.printStackTrace();
       Throwables.propagate(e);
     }
   }
 
-  public void dispatchTextMessage(
+  public void dispatchBinaryMessage(
       final WebSocketSession session,
-      final TextMessage message)
+      final BinaryMessage message)
           throws Exception {
-    ClientRequest request =
-      toClientRequest(message.getPayload().getBytes())
-        .orElseThrow(() -> new InvalidArgumentException("Undecipherable request."));
+    ClientRequest request;
+    try {
+      request = ClientRequest.parseFrom(message.getPayload().array());
+    } catch (InvalidProtocolBufferException e) {
+      throw new Exception("Undecipherable request", e);
+    }
 
     Any operationParameters = request.getRequest();
     if (operationParameters.is(ClientRegistrationRequest.class)) {
@@ -89,7 +90,7 @@ public class ClientHandler extends TextWebSocketHandler {
         operationParameters.unpack(ReadRequest.class);
 
       session.sendMessage(
-          new TextMessage(
+          new BinaryMessage(
             ReadResponse.newBuilder()
               .setMessage(ByteString.copyFrom(
                 readHandler.performReadRequest(
@@ -101,14 +102,6 @@ public class ClientHandler extends TextWebSocketHandler {
               .toByteArray()));
     } else {
       throw new InvalidArgumentException("Unrecognized operation.");
-    }
-  }
-
-  private Optional<ClientRequest> toClientRequest(final byte[] payload) {
-    try {
-      return Optional.of(ClientRequest.parseFrom(payload));
-    } catch (InvalidProtocolBufferException e) {
-      return Optional.empty();
     }
   }
 }

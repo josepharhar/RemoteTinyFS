@@ -5,9 +5,8 @@ import java.util.UUID;
 import javax.inject.Inject;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.BinaryMessage;
 
-import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
 import com.tinyfs.model.ServiceModel.ClientRegistrationResponse;
 
@@ -22,7 +21,7 @@ public class RegistrationHandler {
     this.clientCacheAdapter = clientCacheAdapter;
   }
 
-  public TextMessage registerClient(
+  public BinaryMessage registerClient(
       final String username) {
     String sessionId = UUID.randomUUID().toString();
 
@@ -33,7 +32,7 @@ public class RegistrationHandler {
         .setSessionId(sessionId)
         .build();
 
-    return new TextMessage(response.toByteArray());
+    return new BinaryMessage(response.toByteArray());
   }
 
 }

@@ -2,7 +2,10 @@ package com.tinyfs.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
+
+import javax.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
@@ -13,18 +16,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.tinyfs.credentials.user.AllowableUsers;
+import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.dao.FileConstants;
+import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @RestController
-public class ListFileHandler {
+public class ListDisksHandler {
 
-  private final ObjectMapper mapper = new ObjectMapper();
+  private final ObjectMapper mapper;
+  private final ClientRegistrationRequestValidator registrationRequestValidator;
 
-  @RequestMapping("/listFiles")
-  public String listFiles(
-      @RequestParam("username") final String username) throws Exception {
+  @Inject
+  public ListDisksHandler(
+      ClientRegistrationRequestValidator registrationRequestValidator) {
+    this.mapper = new ObjectMapper();
+    this.registrationRequestValidator = registrationRequestValidator;
+  }
+
+  @RequestMapping("/listDisks")
+  public String listDisks(
+      @RequestParam("token") final String token) throws Exception {
+
+    ClientCredentials credentials =
+        registrationRequestValidator.toClientCredentials(token.getBytes());
 
     File fileDir = new File(FileConstants.FILE_DIRECTORY);
 
@@ -33,13 +47,13 @@ public class ListFileHandler {
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
-    } 
+    }
 
     return mapper.writeValueAsString(
       FileUtils.listFiles(
         new File(FileConstants.FILE_DIRECTORY),
         new SuffixFileFilter(FileConstants.FILE_EXTENSION),
-        new NameFileFilter(username))
+        new NameFileFilter(credentials.getUsername()))
         .stream()
         .map(File::getName)
         .map(this::stripExtension)

@@ -11,10 +11,8 @@ message ClientRequest {
 }
 
 // token:    Encrypted, Serialized client credentials
-// fs_names: The file systems this available to this client
 message ClientRegistrationRequest {
   bytes token = 1;
-  repeated string fs_names = 2;
 }
 
 // sessionId: A unique token handed to a client to identify itself
