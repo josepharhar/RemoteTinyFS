@@ -26,8 +26,8 @@ public class CredentialsObfuscator {
   public CredentialsObfuscator(final SecretKey credentialsKey)
       throws CredentialsException {
     try {
-      this.encryptCipher = Cipher.getInstance("DES");
-      this.decryptCipher = Cipher.getInstance("DES");
+      this.encryptCipher = Cipher.getInstance(credentialsKey.getAlgorithm());
+      this.decryptCipher = Cipher.getInstance(credentialsKey.getAlgorithm());
 
       encryptCipher.init(Cipher.ENCRYPT_MODE, credentialsKey);
       decryptCipher.init(Cipher.DECRYPT_MODE, credentialsKey);

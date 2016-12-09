@@ -25,7 +25,7 @@
       <PatternLayout pattern="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"/>
     </File>
     <File name="CredentialsAppender" fileName="logs/Credentials.log">
-      <PatternLayout pattern="%msg%n"/>
+      <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %msg%n"/>
       <Filters>
       <ThresholdFilter level="CREDENTIALS" onMatch="ACCEPT" />
       </Filters>

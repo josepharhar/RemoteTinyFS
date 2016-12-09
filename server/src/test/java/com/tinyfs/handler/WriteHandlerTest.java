@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.tinyfs.credentials.user.AllowableUsers;
 import com.tinyfs.dao.FileKey;
 import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.dao.HighlyAvailableRemovalListener;
@@ -59,26 +58,5 @@ public class WriteHandlerTest {
       testPost.length()));
 
     assertEquals(testPost, readResult);
-  }
-
-  @Test
-  public void testList() {
-
-    StorageBasedFileAdapter adapter = new StorageBasedFileAdapter();
-
-    String testPost = "Test post please ignore.";
-
-    HighlyAvailableRemovalListener listener = new HighlyAvailableRemovalListener(adapter);
-    HighlyAvailableFileAdapter cache = new HighlyAvailableFileAdapter(listener, adapter);
-
-    for (String user : AllowableUsers.ALLOWABLE_USERS) {
-      cache.writeToFile(
-        FileKey.builder()
-          .username(user)
-          .fileName("listorama")
-          .build(),
-        testPost.getBytes(),
-        17);
-    }
   }
 }
