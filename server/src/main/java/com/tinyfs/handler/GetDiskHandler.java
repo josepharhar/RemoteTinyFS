@@ -38,6 +38,6 @@ public class GetDiskHandler {
       .fileName(disk)
       .build();
 
-    return fileAdapter.readFromFile(fileKey, 0, 256 * 256);
+    return fileAdapter.readFromFile(fileKey, 0, FileAdapter.MAX_FILE_SIZE);
   }
 }
