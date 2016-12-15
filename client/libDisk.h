@@ -5,6 +5,28 @@
 extern "C" {
 #endif
 
+// size of each disk block in bytes
+#define BLOCKSIZE 256
+
+// libDisk return codes
+#define LIBDISK_SUCCESS 0
+// -1X error codes - user error
+#define LIBDISK_WEBSOCKET_NOT_INITIALIZED -10
+#define LIBDISK_TOO_MANY_DISKS_OPEN -11
+#define LIBDISK_INVALID_DISK -12
+// -2X error codes - regularly encounterable errors
+#define LIBDISK_WEBSOCKET_DISCONNECTED -20
+#define LIBDISK_WEBSOCKET_TIMED_OUT -21
+// -3X error codes - should never happen
+#define LIBDISK_WEBSOCKET_BAD_DATA -31
+
+
+/**
+ * Initializes the remote disk
+ * TODO update this and other comments
+ */
+int initLibDisk(char *address, char *token);
+
 /**
  * The emulator is a library of three functions that operate on a regular UNIX
  * file. The necessary functions are: openDisk(), readBlock(), writeBlock().

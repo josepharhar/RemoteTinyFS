@@ -3,3 +3,4 @@ tinyfs
 *.o
 *.a
 *.pb.*
+*.so
