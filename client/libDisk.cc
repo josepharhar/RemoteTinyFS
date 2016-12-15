@@ -9,42 +9,120 @@
 #include "easywsclient.hpp"
 #include "model.pb.h"
 
+#define MAX_DISKS 100000
+#define MAX_TIMEOUTS 3
 #define WEBSOCKET_TIMEOUT_MS 10000
+#ifdef LIBDISK_DEBUG
+#define LOG(message) std::cout << "[libDisk " << __FUNCTION__ << "] " << message << std::endl;
+#else
+#define LOG(message) do {} while (0)
+#endif
+#define LOGERR(message) std::cerr << "[libDisk " << __FUNCTION__ << "] " << message << std::endl;
+#define CHECK_WEBSOCKET()                                                      \
+  if (!g_websocket) {                                                          \
+    LOGERR("WebSocket not initialized");                                       \
+    return LIBDISK_WEBSOCKET_NOT_INITIALIZED;                                  \
+  }                                                                            \
+  if (g_websocket->getReadyState() != WebSocket::OPEN) {                       \
+    return LIBDISK_WEBSOCKET_DISCONNECTED;                                     \
+  }
 
 using easywsclient::WebSocket;
 
-static const char websocket_address[] = "ws://home.arhar.net:4880/client";
-// TODO remove this temporary token
-static const char token[] = "I2gb1RHVrx1P8kJCNMx9Rw==";
+struct Disk {
+  std::string name;
+  // TODO support disk size
+  //int nBytes;
+};
+
+typedef std::map<int, Disk> DiskMap;
 
 static WebSocket::pointer g_websocket = NULL;
-static bool g_registration_request_returned = false;
-static bool g_read_request_returned = false;
+
+static bool g_request_returned = false;
+static std::string g_websocket_message;
+
 static std::string g_session_id;
+static DiskMap g_id_to_disk;
+static int g_next_free_disk_id = 0;
 
-static std::map<int, std::string> disk_id_to_name;
-static int next_free_disk_id = 0;
+enum PollWebSocketResponse {
+  SUCCESS,
+  DISCONNECTED,
+  TIMED_OUT
+};
 
-static void RegistrationCallback(const std::string& message) {
-  tinyfs::ClientRegistrationResponse response;
-  if (response.ParseFromString(message)) {
-    // successfully parsed message
-    std::cout << __FUNCTION__ << " \"" << response.sessionid() << "\"" << std::endl;
-    g_session_id = response.sessionid();
-  } else {
-    std::cout << __FUNCTION__ << " failed to parse ClientRegistrationResponse" << std::endl;
-  }
-  g_registration_request_returned = true;
+template <typename T>
+std::string SerializeRequest(T inner_protobuf) {
+  tinyfs::ClientRequest request_protobuf;
+  request_protobuf.mutable_request()->PackFrom(inner_protobuf);
+  std::string serialized_request;
+  request_protobuf.SerializeToString(&serialized_request);
+  return serialized_request;
 }
 
-static void ReadRequestCallback(const std::string& message) {
-  tinyfs::ReadResponse response;
-  if (response.ParseFromString(message)) {
-    std::cout << __FUNCTION__ << " \"" << response.message() << "\"" << std::endl;
-  } else {
-    std::cout << __FUNCTION__ << " failed to parse ReadResponse" << std::endl;
+static void WebSocketCallback(const std::string& message) {
+  g_websocket_message = message;
+  g_request_returned = true;
+}
+
+static PollWebSocketResponse SendAndReceive(const std::string send_data) {
+  g_websocket->sendBinary(send_data);
+  for (int i = 0; i < MAX_TIMEOUTS || i < 2; i++) {
+    // poll() may need to be called multiple times. It will block once
+    // for WEBSOCKET_TIMEOUT_MS during each call until either the socket
+    // can be written to or read from. It will normally unblock instantly
+    // and write data from sendBinary(), and read nothing. poll() will then
+    // need to be called again in order to block for reading, and then
+    // reading will actually occur. In case reading and writing both
+    // happen in one call to poll(), g_request_returned will be true after
+    // dispatch() is called.
+    g_websocket->poll(WEBSOCKET_TIMEOUT_MS);
+    g_websocket->dispatch(WebSocketCallback);
+
+    if (g_websocket->getReadyState() != WebSocket::OPEN) {
+      return DISCONNECTED;
+    } else if (g_request_returned) {
+      g_request_returned = false;
+      return SUCCESS;
+    }
   }
-  g_read_request_returned = true;
+
+  return TIMED_OUT;
+}
+
+/**
+ * Initializes the remote disk
+ */
+int initLibDisk(char* address, char* token) {
+  g_websocket = WebSocket::from_url(address);
+  CHECK_WEBSOCKET();
+
+  tinyfs::ClientRegistrationRequest request;
+  request.set_token(token);
+
+  PollWebSocketResponse response = SendAndReceive(SerializeRequest(request));
+  switch (response) {
+    case SUCCESS:
+      LOG("successfully connected to \"" << address << "\" with session id \"" << g_session_id << "\"");
+      break;
+    case DISCONNECTED:
+      LOGERR("Disconnected from websocket");
+      return LIBDISK_WEBSOCKET_TIMED_OUT;
+    case TIMED_OUT:
+      LOGERR("WebSocket connection timed out");
+      return LIBDISK_WEBSOCKET_DISCONNECTED;
+  }
+
+  tinyfs::ClientRegistrationResponse registration_response;
+  if (!registration_response.ParseFromString(g_websocket_message)) {
+    LOGERR("Failed to parse data read from websocket");
+    return LIBDISK_WEBSOCKET_BAD_DATA;
+  }
+
+  g_session_id = registration_response.sessionid();
+
+  return LIBDISK_SUCCESS;
 }
 
 /**
@@ -54,7 +132,7 @@ static void ReadRequestCallback(const std::string& message) {
  * of a disk block in bytes. This should be statically defined to 256 bytes
  * using a macro (see below). All IO done to the emulated disk must be block
  * aligned to BLOCKSIZE, meaning that the disk assumes the buffers passed in
- * readBlock() and writeBlock()are exactly BLOCKSIZE bytes large. If they are
+ * readBlock() and writeBlock() are exactly BLOCKSIZE bytes large. If they are
  * not, the behavior is undefined.
  */
 
@@ -70,32 +148,19 @@ static void ReadRequestCallback(const std::string& message) {
  * nBytes. The return value is -1 on failure or a disk number on success.
  */
 int openDisk(char* filename, int nBytes) {
-  g_websocket = WebSocket::from_url(websocket_address);
-  if (!g_websocket) {
-    std::cout << "!websocket, exiting" << std::endl;
-    return 1;
+  CHECK_WEBSOCKET();
+
+  if (g_next_free_disk_id > MAX_DISKS) {
+    return LIBDISK_TOO_MANY_DISKS_OPEN;
   }
 
-  // TODO move this to RegistrationCallback?
-  // what if opening the disk fails, or this filename is already open?
-  disk_id_to_name[next_free_disk_id++] = filename;
+  Disk new_disk;
+  new_disk.name = filename;
 
-  tinyfs::ClientRegistrationRequest registration_protobuf;
-  tinyfs::ClientRequest registration_request_protobuf;
-  registration_protobuf.set_token(token);
-  registration_protobuf.add_fs_names(filename);
-  registration_request_protobuf.mutable_request()->PackFrom(registration_protobuf);
-  std::string protobuf_string;
-  registration_request_protobuf.SerializeToString(&protobuf_string);
-  g_websocket->send(protobuf_string);
+  int disk_id = g_next_free_disk_id++;
+  g_id_to_disk[disk_id] = new_disk;
 
-  std::cout << "sent message" << std::endl;
-
-  while (!g_registration_request_returned) {
-    std::cout << "polling" << std::endl;
-    g_websocket->poll(WEBSOCKET_TIMEOUT_MS);
-    g_websocket->dispatch(RegistrationCallback);
-  }
+  return disk_id;
 }
 
 /**
@@ -109,27 +174,41 @@ int openDisk(char* filename, int nBytes) {
  * is not available (hasn’t been opened) or any other failures. You must define
  * your own error code system.
  */
-int readBlock(int disk, int bNum, void* block) {
-  // TODO check to make sure this is valid
-  std::string fs_name = disk_id_to_name[disk];
-
-  tinyfs::ReadRequest read_protobuf;
-  tinyfs::ClientRequest read_request_protobuf;
-  std::string protobuf_string;
-  read_protobuf.set_sessionid(g_session_id);
-  read_protobuf.set_filesystem(fs_name);
-  read_protobuf.set_offset(0);
-  read_protobuf.set_size(bNum);
-  read_request_protobuf.mutable_request()->PackFrom(read_protobuf);
-  read_request_protobuf.SerializeToString(&protobuf_string);
-  g_websocket->send(protobuf_string);
-
-  //while (websocket->getReadyState() != easywsclient::WebSocket::CLOSED) {
-  while(!g_read_request_returned) {
-    std::cout << "polling for read request callback" << std::endl;
-    g_websocket->poll(WEBSOCKET_TIMEOUT_MS);
-    g_websocket->dispatch(ReadRequestCallback);
+int readBlock(int disk_id, int bNum, void* block) {
+  DiskMap::iterator disk_iterator = g_id_to_disk.find(disk_id);
+  if (disk_iterator == g_id_to_disk.end()) {
+    return LIBDISK_INVALID_DISK;
   }
+  Disk disk = disk_iterator->second;
+
+  tinyfs::ReadRequest request;
+  request.set_sessionid(g_session_id);
+  request.set_file(disk.name);
+  request.set_offset(BLOCKSIZE * bNum);
+  request.set_size(BLOCKSIZE);
+
+  PollWebSocketResponse response = SendAndReceive(SerializeRequest(request));
+  switch (response) {
+    case SUCCESS:
+      break;
+    case DISCONNECTED:
+      LOGERR("Disconnected from websocket");
+      return LIBDISK_WEBSOCKET_TIMED_OUT;
+    case TIMED_OUT:
+      LOGERR("WebSocket connection timed out");
+      return LIBDISK_WEBSOCKET_DISCONNECTED;
+  }
+
+  tinyfs::ReadResponse read_response;
+  if (!read_response.ParseFromString(g_websocket_message)) {
+    LOGERR("Failed to parse data read from websocket");
+    return LIBDISK_WEBSOCKET_BAD_DATA;
+  }
+
+  const std::string read_block = read_response.message();
+  memcpy(block, read_block.data(), BLOCKSIZE);
+
+  return LIBDISK_SUCCESS;
 }
 
 /**
@@ -141,20 +220,32 @@ int readBlock(int disk, int bNum, void* block) {
  * (i.e. hasn’t been opened) or any other failures. You must define your own
  * error code system.
  */
-int writeBlock(int disk, int bNum, void* block) {
-  // TODO check to make sure this is valid, move to function?
-  std::string fs_name = disk_id_to_name[disk];
+int writeBlock(int disk_id, int bNum, void* block) {
+  DiskMap::iterator disk_iterator = g_id_to_disk.find(disk_id);
+  if (disk_iterator == g_id_to_disk.end()) {
+    return LIBDISK_INVALID_DISK;
+  }
+  Disk disk = disk_iterator->second;
 
-  tinyfs::WriteRequest write_protobuf;
-  tinyfs::ClientRequest write_request_protobuf;
-  std::string protobuf_string;
-  write_protobuf.set_sessionid(g_session_id);
-  write_protobuf.set_filesystem(fs_name);
-  write_protobuf.set_message((char*) block);
-  write_request_protobuf.mutable_request()->PackFrom(write_protobuf);
-  write_request_protobuf.SerializeToString(&protobuf_string);
-  g_websocket->send(protobuf_string);
-  // TODO should we block for a response when sending write requests? yeah, probably.
-  
-  g_websocket->poll(WEBSOCKET_TIMEOUT_MS); // ?
+  tinyfs::WriteRequest request;
+  request.set_sessionid(g_session_id);
+  request.set_file(disk.name);
+  request.set_message(block, BLOCKSIZE);
+  request.set_offset(BLOCKSIZE * bNum);
+
+  PollWebSocketResponse response = SendAndReceive(SerializeRequest(request));
+  switch (response) {
+    case SUCCESS:
+      break;
+    case DISCONNECTED:
+      LOGERR("Disconnected from websocket");
+      return LIBDISK_WEBSOCKET_TIMED_OUT;
+    case TIMED_OUT:
+      LOGERR("WebSocket connection timed out");
+      return LIBDISK_WEBSOCKET_DISCONNECTED;
+  }
+
+  // WriteResponse is empty, do nothing else here
+
+  return LIBDISK_SUCCESS;
 }

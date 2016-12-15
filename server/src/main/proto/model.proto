@@ -31,6 +31,8 @@ message WriteRequest {
   int32 offset = 4;
 }
 
+message WriteResponse {}
+
 // sessionId:   The unique token given on client registration.
 // file:        The target file to write to.
 // offset:      The offset in the file system to read from.

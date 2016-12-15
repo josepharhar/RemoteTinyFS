@@ -18,6 +18,7 @@ import com.tinyfs.model.ServiceModel.ClientRequest;
 import com.tinyfs.model.ServiceModel.ReadRequest;
 import com.tinyfs.model.ServiceModel.ReadResponse;
 import com.tinyfs.model.ServiceModel.WriteRequest;
+import com.tinyfs.model.ServiceModel.WriteResponse;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @Component
@@ -85,6 +86,11 @@ public class ClientHandler extends BinaryWebSocketHandler {
         writeRequest.getFile(),
         writeRequest.getMessage().toByteArray(),
         writeRequest.getOffset());
+
+      session.sendMessage(new BinaryMessage(
+          WriteResponse.newBuilder()
+            .build()
+            .toByteArray()));
     } else if (operationParameters.is(ReadRequest.class)) {
       ReadRequest readRequest =
         operationParameters.unpack(ReadRequest.class);
