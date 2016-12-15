@@ -1,14 +1,21 @@
 // This file controls the UI of the page
 
 polyFS_visualizer.load_disk = {
-   load: function (disk) {
+   load: function (disk, token) {
       console.log("loading: " + disk);
       $.ajax({
          type: "GET",
          dataType: 'binary',
          processData: false,
          responseType:'arraybuffer',
-         url: "disks/" + disk,
+         url: "getDisk",
+         data: "disk=" + disk + "&token=" + token,
+         statusCode: {
+            // server returns 400 when token is invalid
+            400: function() {
+               warning("Bad token");
+            }
+         }
       })
       .done(function(result) {
          polyFS_visualizer.disk_config.load(disk);
@@ -24,6 +31,30 @@ polyFS_visualizer.load_disk = {
          warning( "disk does not exist" );
          polyFS_visualizer.load_disk.clear_page();
          $("#diskModal-close").click();
+      })
+   },
+
+   list: function(token) {
+      $.ajax({
+         type: "GET",
+         dataType: 'binary',
+         processData: false,
+         responseType: 'json',
+         url: "listDisks",
+         data: "token=" + token,
+         statusCode: {
+            // server returns 400 when token is invalid
+            400: function() {
+               warning("Bad token");
+            }
+         }
+      }).done(function(result) {
+         for (var i = 0; i < result.length; i++) {
+            polyFS_visualizer.history.update_history(result[i]);
+         }
+         success("Token accepted, " + result.length + " disks found");
+      }).fail(function() {
+         warning("Failed to list disks");
       })
    },
 
