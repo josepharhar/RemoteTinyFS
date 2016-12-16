@@ -131,7 +131,7 @@ int initLibDisk(char* address, char* token) {
     case tinyfs::ClientRegistrationResponse_ResponseCode_SUCCESS:
       break;
     case tinyfs::ClientRegistrationResponse_ResponseCode_BAD_TOKEN:
-      LOGERR("Token was rejected by server");
+      LOGERR("Token was rejected by server - please contact Professor");
       DisconnectWebSocket();
       return LIBDISK_INVALID_TOKEN;
   }

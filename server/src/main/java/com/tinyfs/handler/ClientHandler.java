@@ -2,6 +2,8 @@ package com.tinyfs.handler;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -25,6 +27,8 @@ import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @Component
 public class ClientHandler extends BinaryWebSocketHandler {
+
+  private static final Logger LOGGER = LogManager.getLogger(ClientHandler.class);
 
   private final ClientRegistrationRequestValidator registrationRequestValidator;
   private final RegistrationHandler registrationHandler;
@@ -81,6 +85,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
         session.sendMessage(
           registrationHandler.registerClient(clientCredentials.getUsername()));
       } catch (InvalidCredentialsException e) {
+        LOGGER.info("Client sent invalid credentials");
         session.sendMessage(new BinaryMessage(
             ClientRegistrationResponse.newBuilder()
               .setSessionId("")

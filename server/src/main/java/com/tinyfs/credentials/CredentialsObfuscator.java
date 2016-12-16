@@ -88,14 +88,15 @@ public class CredentialsObfuscator {
     try {
       decryptedBase64 = decryptCipher.doFinal(base64);
     } catch (IllegalBlockSizeException | BadPaddingException e) {
-      // Client sent unregistered token?
+      // Client sent unregistered token
       throw new InvalidCredentialsException("Client gave bad token", e);
     }
 
     try {
       return parseFunction.parseFrom(decryptedBase64);
     } catch (Exception e) {
-      // ???
+      // Client gave a message which was signed using our key
+      // but not a valid protobuf object to be parsed
       throw new RuntimeException(e);
     }
   }
