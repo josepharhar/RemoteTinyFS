@@ -28,7 +28,7 @@ Maven is used to build and launch the server. If you're using yum, you will need
     sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
     sudo yum install -y apache-maven
 
-## 1.4 Running The Servre
+## 1.4 Running The Server
 To launch the server, from RemoteTinyFS/server, use:
 
     mvn spring-boot:run
