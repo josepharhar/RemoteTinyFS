@@ -91,6 +91,13 @@ static PollWebSocketResponse SendAndReceive(const std::string send_data) {
   return TIMED_OUT;
 }
 
+static void DisconnectWebSocket() {
+  if (g_websocket) {
+    g_websocket->close();
+    delete g_websocket;
+  }
+}
+
 /**
  * Initializes the remote disk
  */
@@ -118,6 +125,15 @@ int initLibDisk(char* address, char* token) {
   if (!registration_response.ParseFromString(g_websocket_message)) {
     LOGERR("Failed to parse data read from websocket");
     return LIBDISK_WEBSOCKET_BAD_DATA;
+  }
+
+  switch (registration_response.responsecode()) {
+    case tinyfs::ClientRegistrationResponse_ResponseCode_SUCCESS:
+      break;
+    case tinyfs::ClientRegistrationResponse_ResponseCode_BAD_TOKEN:
+      LOGERR("Token was rejected by server");
+      DisconnectWebSocket();
+      return LIBDISK_INVALID_TOKEN;
   }
 
   g_session_id = registration_response.sessionid();

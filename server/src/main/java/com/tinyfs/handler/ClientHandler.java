@@ -13,7 +13,9 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
 import com.tinyfs.exception.InvalidArgumentException;
+import com.tinyfs.exception.InvalidCredentialsException;
 import com.tinyfs.model.ServiceModel.ClientRegistrationRequest;
+import com.tinyfs.model.ServiceModel.ClientRegistrationResponse;
 import com.tinyfs.model.ServiceModel.ClientRequest;
 import com.tinyfs.model.ServiceModel.ReadRequest;
 import com.tinyfs.model.ServiceModel.ReadResponse;
@@ -72,11 +74,20 @@ public class ClientHandler extends BinaryWebSocketHandler {
     if (operationParameters.is(ClientRegistrationRequest.class)) {
       ClientRegistrationRequest registrationRequest =
         operationParameters.unpack(ClientRegistrationRequest.class);
-      ClientCredentials clientCredentials =
-        registrationRequestValidator.toClientCredentials(registrationRequest.getToken().toByteArray());
 
-      session.sendMessage(
-        registrationHandler.registerClient(clientCredentials.getUsername()));
+      try {
+        ClientCredentials clientCredentials = registrationRequestValidator
+          .toClientCredentials(registrationRequest.getToken().toByteArray());
+        session.sendMessage(
+          registrationHandler.registerClient(clientCredentials.getUsername()));
+      } catch (InvalidCredentialsException e) {
+        session.sendMessage(new BinaryMessage(
+            ClientRegistrationResponse.newBuilder()
+              .setSessionId("")
+              .setResponseCode(ClientRegistrationResponse.ResponseCode.BAD_TOKEN)
+              .build()
+              .toByteArray()));
+      }
     } else if (operationParameters.is(WriteRequest.class)) {
       WriteRequest writeRequest =
         operationParameters.unpack(WriteRequest.class);
@@ -89,6 +100,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
 
       session.sendMessage(new BinaryMessage(
           WriteResponse.newBuilder()
+            .setResponseCode(WriteResponse.ResponseCode.SUCCESS)
             .build()
             .toByteArray()));
     } else if (operationParameters.is(ReadRequest.class)) {
@@ -98,6 +110,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
       session.sendMessage(
           new BinaryMessage(
             ReadResponse.newBuilder()
+              .setResponseCode(ReadResponse.ResponseCode.SUCCESS)
               .setMessage(ByteString.copyFrom(
                 readHandler.performReadRequest(
                   readRequest.getSessionId(),

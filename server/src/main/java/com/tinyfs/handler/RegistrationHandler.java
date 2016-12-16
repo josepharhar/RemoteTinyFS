@@ -29,6 +29,7 @@ public class RegistrationHandler {
 
     ClientRegistrationResponse response =
       ClientRegistrationResponse.newBuilder()
+        .setResponseCode(ClientRegistrationResponse.ResponseCode.SUCCESS)
         .setSessionId(sessionId)
         .build();
 

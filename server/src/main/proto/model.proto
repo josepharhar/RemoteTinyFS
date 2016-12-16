@@ -15,10 +15,16 @@ message ClientRegistrationRequest {
   bytes token = 1;
 }
 
-// sessionId: A unique token handed to a client to identify itself
-//            on future calls.
+// sessionId:     A unique token handed to a client to identify itself
+//                on future calls. Empty string on failure.
+// responseCode : SUCCESS on success, or error code on failure.
 message ClientRegistrationResponse {
   string sessionId = 1;
+  enum ResponseCode {
+    SUCCESS = 0;
+    BAD_TOKEN = 1;
+  }
+  ResponseCode responseCode = 2;
 }
 
 // sessionId:   The unique token given on client registration.
@@ -31,7 +37,13 @@ message WriteRequest {
   int32 offset = 4;
 }
 
-message WriteResponse {}
+// responseCode: SUCCESS on success, or error code on failure.
+message WriteResponse {
+  enum ResponseCode {
+    SUCCESS = 0;
+  }
+  ResponseCode responseCode = 1;
+}
 
 // sessionId:   The unique token given on client registration.
 // file:        The target file to write to.
@@ -44,7 +56,12 @@ message ReadRequest {
   int32 size = 4;
 }
 
-// message: The message returned as a byte array.
+// message:      The message returned as a byte array. Empty on failure.
+// responseCode: SUCCESS on success, or error code on failure.
 message ReadResponse {
   bytes message = 1;
+  enum ResponseCode {
+    SUCCESS = 0;
+  }
+  ResponseCode responseCode = 2;
 }

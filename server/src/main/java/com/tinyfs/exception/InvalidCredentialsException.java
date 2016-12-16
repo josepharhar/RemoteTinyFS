@@ -10,4 +10,8 @@ public class InvalidCredentialsException extends RuntimeException {
   public InvalidCredentialsException(Throwable e) {
     super(e);
   }
+
+  public InvalidCredentialsException(String message, Throwable e) {
+    super(message, e);
+  }
 }

@@ -4,7 +4,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.inject.Inject;
@@ -74,16 +76,28 @@ public class CredentialsObfuscator {
   private <E> E deobfuscateProtobufCredentials(
       final byte[] obfuscatedCredentials,
       final ByteArrayParser<E> parseFunction) {
-    E credentials = null;
-
+    byte[] base64 = null;
     try {
-      credentials =
-        parseFunction.parseFrom(decodeByteArray(fromBase64(obfuscatedCredentials)));
-    } catch (Exception e) {
-      throw new InvalidCredentialsException(e);
+      base64 = Base64.getDecoder().decode(obfuscatedCredentials);
+    } catch (IllegalArgumentException e) {
+      // Client sent non-base64 token string
+      throw new InvalidCredentialsException("Client gave non-Base64 token", e);
     }
 
-    return credentials;
+    byte[] decryptedBase64 = null;
+    try {
+      decryptedBase64 = decryptCipher.doFinal(base64);
+    } catch (IllegalBlockSizeException | BadPaddingException e) {
+      // Client sent unregistered token?
+      throw new InvalidCredentialsException("Client gave bad token", e);
+    }
+
+    try {
+      return parseFunction.parseFrom(decryptedBase64);
+    } catch (Exception e) {
+      // ???
+      throw new RuntimeException(e);
+    }
   }
 
   private byte[] toBase64(final byte[] plainText) throws Exception {

@@ -14,6 +14,7 @@ extern "C" {
 #define LIBDISK_WEBSOCKET_NOT_INITIALIZED -10
 #define LIBDISK_TOO_MANY_DISKS_OPEN -11
 #define LIBDISK_INVALID_DISK -12
+#define LIBDISK_INVALID_TOKEN -13
 // -2X error codes - regularly encounterable errors
 #define LIBDISK_WEBSOCKET_DISCONNECTED -20
 #define LIBDISK_WEBSOCKET_TIMED_OUT -21
