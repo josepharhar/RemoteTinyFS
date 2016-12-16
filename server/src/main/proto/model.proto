@@ -65,3 +65,21 @@ message ReadResponse {
   }
   ResponseCode responseCode = 2;
 }
+
+// sessionId:   The unique token given on client registration.
+// diskname:    The name of the disk to be opened.
+message DiskInfoRequest {
+  string sessionId = 1;
+  string diskname = 2;
+}
+
+// disksize:      The size of the opened disk in bytes.
+// responseCode:  SUCCESS on success, or error code on failure.
+message DiskInfoResponse {
+  int32 disksize = 1;
+  enum ResponseCode {
+    SUCCESS = 0;
+    DISK_NOT_FOUND = 1;
+  }
+  ResponseCode responseCode = 2;
+}

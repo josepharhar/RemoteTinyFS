@@ -32,8 +32,7 @@ using easywsclient::WebSocket;
 
 struct Disk {
   std::string name;
-  // TODO support disk size
-  //int nBytes;
+  int nBytes;
 };
 
 typedef std::map<int, Disk> DiskMap;
@@ -117,7 +116,6 @@ int initLibDisk(char* token) {
   PollWebSocketResponse response = SendAndReceive(SerializeRequest(request));
   switch (response) {
     case SUCCESS:
-      LOG("successfully connected to \"" << address << "\" with session id \"" << g_session_id << "\"");
       break;
     case DISCONNECTED:
       LOGERR("Disconnected from websocket");
@@ -144,6 +142,7 @@ int initLibDisk(char* token) {
 
   g_session_id = registration_response.sessionid();
 
+  LOG("Successfully connected to \"" << websocket_address << "\" with sessionid: " << g_session_id);
   return LIBDISK_SUCCESS;
 }
 
@@ -169,8 +168,17 @@ int initLibDisk(char* token) {
  * There is no requirement to maintain integrity of any file content beyond
  * nBytes. The return value is -1 on failure or a disk number on success.
  */
-int openDisk(char* filename, int nBytes) {
+int openDisk(char* diskname, int nBytes) {
   CHECK_WEBSOCKET();
+
+  // If the disk is already open, then return it
+  for (DiskMap::iterator iter = g_id_to_disk.begin();
+      iter != g_id_to_disk.end();
+      iter++) {
+    if ((iter->second).name == diskname) {
+      return iter->first;
+    }
+  }
 
   if (g_next_free_disk_id > MAX_DISKS) {
     return LIBDISK_TOO_MANY_DISKS_OPEN;
@@ -182,6 +190,7 @@ int openDisk(char* filename, int nBytes) {
   int disk_id = g_next_free_disk_id++;
   g_id_to_disk[disk_id] = new_disk;
 
+  LOG("Successfully opened disk " << disk_id);
   return disk_id;
 }
 
@@ -232,6 +241,7 @@ int readBlock(int disk_id, int bNum, void* block) {
   const std::string read_block = read_response.message();
   memcpy(block, read_block.data(), BLOCKSIZE);
 
+  LOG("Successfully read block " << bNum << " from disk " << disk_id);
   return LIBDISK_SUCCESS;
 }
 
@@ -273,5 +283,6 @@ int writeBlock(int disk_id, int bNum, void* block) {
 
   // WriteResponse is empty, do nothing else here
 
+  LOG("Successfully wrote block " << bNum << " to disk " << disk_id);
   return LIBDISK_SUCCESS;
 }
