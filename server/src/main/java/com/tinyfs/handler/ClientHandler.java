@@ -85,7 +85,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
         session.sendMessage(
           registrationHandler.registerClient(clientCredentials.getUsername()));
       } catch (InvalidCredentialsException e) {
-        LOGGER.info("Client sent invalid credentials");
+        LOGGER.error("Client sent invalid credentials");
         session.sendMessage(new BinaryMessage(
             ClientRegistrationResponse.newBuilder()
               .setSessionId("")
