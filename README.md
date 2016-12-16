@@ -5,37 +5,34 @@
 # 1. Server Installation Instructions
 These instructions were made for Amazon Linux but the server should build on most any Unix system. For those systems, use their package manage to get the packages below.
 ## 1.1 Install Git
-Use git to pull down this repository. If your system does not have git
-    ```
+Use git to pull down this repository. If your system does not have git:
+
     sudo yum install git
-    ```
 
 ## 1.2 Install Java 8
 The server uses Java 8 features and requires that you have Java 8 installed. To check which version of Java you are running,
     run:
-    ```
+    
     java -version
-    ```
-    Java 8 is version 1.8.0 or better. If you do not have Java 8, you can use yum and alternatives to install it:
-    ```
+
+Java 8 is version 1.8.0 or better. If you do not have Java 8, you can use yum and alternatives to install it:
+    
     sudo yum install java-1.8.0-openjdk-devel
     sudo /usr/sbin/alternatives --config java   # Select Java 8
     sudo /usr/sbin/alternatives --config javac  # Select Java 8
-    ```
 
 ## 1.3 Install Maven
 Maven is used to build and launch the server. If you're using yum, you will need to add the apache-maven repo. Just run these commands to install everything needed:
-    ```
+
     sudo wget http://repos.fedorapeople.org/repos/dchen/apache-maven/epel-apache-maven.repo -O /etc/yum.repos.d/epel-apache-maven.repo
     sudo sed -i s/\$releasever/6/g /etc/yum.repos.d/epel-apache-maven.repo
     sudo yum install -y apache-maven
-    ```
 
 ## 1.4 Running The Servre
 To launch the server, from RemoteTinyFS/server, use:
-    ```
+
     mvn spring-boot:run
-    ```
+
 This will start a process in your shell that is running the server. To get a list of registered credentials for that server instance, check server/logs/Credentials.log for the most recently printed list of user names and tokens.
 
 # 2. Client Installation Instructions
