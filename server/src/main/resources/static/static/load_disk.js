@@ -9,7 +9,7 @@ polyFS_visualizer.load_disk = {
          processData: false,
          responseType:'arraybuffer',
          url: "getDisk",
-         data: "disk=" + disk + "&token=" + token,
+         data: "disk=" + disk + "&token=" + encodeURIComponent(token),
          statusCode: {
             // server returns 400 when token is invalid
             400: function() {
@@ -41,7 +41,7 @@ polyFS_visualizer.load_disk = {
          processData: false,
          responseType: 'json',
          url: "listDisks",
-         data: "token=" + token,
+         data: "token=" + encodeURIComponent(token),
          statusCode: {
             // server returns 400 when token is invalid
             400: function() {
