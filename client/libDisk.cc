@@ -18,13 +18,14 @@
 #define LOG(message) do {} while (0)
 #endif
 #define LOGERR(message) std::cerr << "[libDisk " << __FUNCTION__ << "] " << message << std::endl;
-#define CHECK_WEBSOCKET()                                                      \
-  if (!g_websocket) {                                                          \
-    LOGERR("WebSocket not initialized");                                       \
-    return LIBDISK_WEBSOCKET_NOT_INITIALIZED;                                  \
-  }                                                                            \
-  if (g_websocket->getReadyState() != WebSocket::OPEN) {                       \
-    return LIBDISK_WEBSOCKET_DISCONNECTED;                                     \
+#define CHECK_WEBSOCKET()                                             \
+  if (!g_websocket) {                                                 \
+    LOGERR("WebSocket not initialized. Did you call initLibDisk()?"); \
+    return LIBDISK_WEBSOCKET_NOT_INITIALIZED;                         \
+  }                                                                   \
+  if (g_websocket->getReadyState() != WebSocket::OPEN) {              \
+    LOGERR("WebSocket disconnected");                                 \
+    return LIBDISK_WEBSOCKET_DISCONNECTED;                            \
   }
 
 using easywsclient::WebSocket;
@@ -101,9 +102,14 @@ static void DisconnectWebSocket() {
 /**
  * Initializes the remote disk
  */
-int initLibDisk(char* address, char* token) {
-  g_websocket = WebSocket::from_url(address);
-  CHECK_WEBSOCKET();
+int initLibDisk(char* token) {
+  std::string websocket_address =
+    std::string("ws://") + LIBDISK_ADDRESS + "/client";
+  g_websocket = WebSocket::from_url(websocket_address);
+  if (!g_websocket || g_websocket->getReadyState() != WebSocket::OPEN) {
+    LOGERR("Failed to initialize WebSocket connection to \"" << websocket_address << "\"");
+    return LIBDISK_WEBSOCKET_DISCONNECTED;
+  }
 
   tinyfs::ClientRegistrationRequest request;
   request.set_token(token);
@@ -191,6 +197,8 @@ int openDisk(char* filename, int nBytes) {
  * your own error code system.
  */
 int readBlock(int disk_id, int bNum, void* block) {
+  CHECK_WEBSOCKET();
+
   DiskMap::iterator disk_iterator = g_id_to_disk.find(disk_id);
   if (disk_iterator == g_id_to_disk.end()) {
     return LIBDISK_INVALID_DISK;
@@ -237,6 +245,8 @@ int readBlock(int disk_id, int bNum, void* block) {
  * error code system.
  */
 int writeBlock(int disk_id, int bNum, void* block) {
+  CHECK_WEBSOCKET();
+
   DiskMap::iterator disk_iterator = g_id_to_disk.find(disk_id);
   if (disk_iterator == g_id_to_disk.end()) {
     return LIBDISK_INVALID_DISK;

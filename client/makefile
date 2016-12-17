@@ -1,3 +1,5 @@
+LIBDISK_ADDRESS = \"home.arhar.net:4880\"
+
 ARCH := $(shell getconf LONG_BIT)
 REMOTETINYFS_DIR = $(HOME)/remotetinyfs-bin$(ARCH)
 
@@ -7,22 +9,20 @@ PKG_CONFIG_PATH = $(REMOTETINYFS_DIR)/lib/pkgconfig
 PROTOBUF_CFLAGS := $(shell env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 PROTOBUF_LIBS := $(shell env PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf)
 
+CFLAGS := -Wall -DLIBDISK_ADDRESS=$(LIBDISK_ADDRESS)
 ifdef LIBDISK_DEBUG
-CFLAGS = -Wall -DLIBDISK_DEBUG -g
-else
-CFLAGS = -Wall
+CFLAGS += -g -DLIBDISK_DEBUG
 endif
 
 all: export
 
-export: libDisk.so tfs_makefile
+export: libDisk.so files-for-students
 	cp libDisk.so $(REMOTETINYFS_DIR)
 	chmod 755 $(REMOTETINYFS_DIR)/libDisk.so
-	mkdir -p $(REMOTETINYFS_DIR)/studentfiles
-	cp libDisk.h $(REMOTETINYFS_DIR)/studentfiles
-	cp tfs_makefile $(REMOTETINYFS_DIR)/studentfiles
-	sed -i '1s@.*@REMOTETINYFS_DIR = $(REMOTETINYFS_DIR)@' $(REMOTETINYFS_DIR)/studentfiles/tfs_makefile
-	chmod -R 755 $(REMOTETINYFS_DIR)/studentfiles
+	cp -r files-for-students $(REMOTETINYFS_DIR)
+	cp libDisk.h $(REMOTETINYFS_DIR)/files-for-students
+	sed -i '1s@.*@REMOTETINYFS_DIR = $(REMOTETINYFS_DIR)@' $(REMOTETINYFS_DIR)/files-for-students/makefile
+	chmod -R 755 $(REMOTETINYFS_DIR)/files-for-students
 
 libDisk.so: libDisk.o easywsclient.o model.pb.o
 	gcc -shared -o $@ $^ $(PROTOBUF_LIBS)
@@ -42,5 +42,5 @@ model.pb.h: model.proto
 clean:
 	rm -rf libDisk.so Disk.o easywsclient.o model.pb.o model.pb.h model.pb.cc
 
-testDriver: testDriver.cc export
-	g++ $< $(REMOTETINYFS_FLAGS) -o $@
+testDriver: testDriver.cc libDisk.h export
+	gcc $(CFLAGS) $< $(REMOTETINYFS_FLAGS) -o $@

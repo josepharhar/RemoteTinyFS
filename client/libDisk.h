@@ -23,10 +23,11 @@ extern "C" {
 
 
 /**
- * Initializes the remote disk
- * TODO update this and other comments
+ * Initializes the remote disk. This must be called before any other methods
+ * in this file. In a local libDisk implementation, the body of this method
+ * should be empty and simply return LIBDISK_SUCCESS.
  */
-int initLibDisk(char *address, char *token);
+int initLibDisk(char *token);
 
 /**
  * The emulator is a library of three functions that operate on a regular UNIX
