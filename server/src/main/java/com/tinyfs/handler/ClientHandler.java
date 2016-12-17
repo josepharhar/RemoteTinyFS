@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.BinaryMessage;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
@@ -45,6 +46,17 @@ public class ClientHandler extends BinaryWebSocketHandler {
     this.registrationHandler = registrationHandler;
     this.writeHandler = writeHandler;
     this.readHandler = readHandler;
+  }
+
+  @Override
+  public void afterConnectionEstablished(WebSocketSession session) {
+    LOGGER.info("connection established on session: " + session.getId());
+  }
+
+  @Override
+  public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    // TODO log an error if the closestatus is bad
+    LOGGER.info("connection closed on session: " + session.getId() + ", status: " + status);
   }
 
   /**

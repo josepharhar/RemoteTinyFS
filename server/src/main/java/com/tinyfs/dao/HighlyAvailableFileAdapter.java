@@ -37,6 +37,9 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
       final int offset) {
     try {
       Byte[] file = fileCache.get(fileKey);
+      if (offset + message.length > file.length) {
+        throw new RuntimeException("writing out of bounds to file. file.length: " + file.length + ", offset: " + offset + ", message.length: " + message.length);
+      }
 
       for (int i = 0; i < message.length; i++) {
         file[offset + i] = message[i];

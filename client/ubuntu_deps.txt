@@ -1,0 +1,3 @@
+sudo apt-get install autoconf automake libtool curl make g++ unzip
+
+also pkg-config package needed

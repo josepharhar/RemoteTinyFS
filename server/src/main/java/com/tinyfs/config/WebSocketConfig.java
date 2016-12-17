@@ -9,8 +9,6 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.ExceptionWebSocketHandlerDecorator;
 
-import com.tinyfs.handler.ClientHandler;
-
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer, ApplicationContextAware {

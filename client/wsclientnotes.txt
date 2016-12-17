@@ -1,0 +1,24 @@
+How does easywsclient::WebSocket::poll work?
+1. if timeout > 0, use FD_SET to make recv() block until receiving message
+   otherwise, poll() will be nonblocking
+2. calls recv() until return code is <= 0
+   this means that it will receive all data which the OS buffered on the websocket
+3. calls send() while txbuf.size()
+   this sends all buffered data to the websocket
+
+How does easywsclient::WebSocket::dispatch work?
+1. returns if rxbuf.size() < 2
+   if we didn't get any input data from poll(), then return
+2. call the callable with rxbuf's data, then remove from rxbuf
+
+so the call pattern should be like
+send()
+poll()
+dispatch()
+no looping required, right?
+
+when select() is called with the write fds, it instantly returns regardless of the reading
+because it is ready to write? - we have to make it block for reading only instead
+
+it will take TWO poll()s - one for writing, and one for reading
+although both could be done in one poll() in theory, but theres no good way to know

@@ -13,33 +13,36 @@ import com.tinyfs.dao.HighlyAvailableFileAdapter;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @RestController
-public class GetDiskHandler {
+public class DeleteDiskHandler {
 
   private final FileAdapter fileAdapter;
   private final ClientRegistrationRequestValidator registrationRequestValidator;
 
   @Inject
-  public GetDiskHandler(
+  public DeleteDiskHandler(
       HighlyAvailableFileAdapter fileAdapter,
       ClientRegistrationRequestValidator registrationRequestValidator) {
     this.fileAdapter = fileAdapter;
     this.registrationRequestValidator = registrationRequestValidator;
   }
 
-  @RequestMapping("/getDisk")
-  public byte[] getDisk(
+  @RequestMapping("/deleteDisk")
+  public void deleteDisk(
       @RequestParam(value="disk") String disk,
       @RequestParam(value="token") String token) {
+    
     ClientCredentials credentials =
         registrationRequestValidator.toClientCredentials(token.getBytes());
-
+    
     FileKey fileKey = FileKey.builder()
       .username(credentials.getUsername())
       .fileName(disk)
       .build();
 
     // TODO what if disk name is invalid?
-    // TODO determine size to read
-    return fileAdapter.readFromFile(fileKey, 0, FileAdapter.MAX_FILE_SIZE);
+    // TODO delete disk by removing from cache and deleting file
+    //      also need to make sure that no websocket connections
+    //      are using the disk, and that no other requests can be
+    //      started for that user while deleting
   }
 }

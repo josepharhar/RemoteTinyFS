@@ -1,0 +1,8 @@
+checking how to create a ustar tar archive... 
+ATTENTION! pax archive volume change required.
+Ready for archive volume: 1
+Input archive name or "." to quit pax.
+Archive name > 
+
+
+.<enter>
