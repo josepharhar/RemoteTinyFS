@@ -213,7 +213,7 @@ class _RealWebSocket : public easywsclient::WebSocket
                 rxbuf.resize(N);
                 closesocket(sockfd);
                 readyState = CLOSED;
-                fputs(ret < 0 ? "Connection error!\n" : "Connection closed!\n", stderr);
+                //fputs(ret < 0 ? "Connection error!\n" : "Connection closed!\n", stderr);
                 break;
             }
             else {
@@ -229,7 +229,7 @@ class _RealWebSocket : public easywsclient::WebSocket
             else if (ret <= 0) {
                 closesocket(sockfd);
                 readyState = CLOSED;
-                fputs(ret < 0 ? "Connection error!\n" : "Connection closed!\n", stderr);
+                //fputs(ret < 0 ? "Connection error!\n" : "Connection closed!\n", stderr);
                 break;
             }
             else {
@@ -454,7 +454,7 @@ easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, 
         fprintf(stderr, "ERROR: Could not parse WebSocket url: %s\n", url.c_str());
         return NULL;
     }
-    fprintf(stderr, "easywsclient: connecting: host=%s port=%d path=/%s\n", host, port, path);
+    //fprintf(stderr, "easywsclient: connecting: host=%s port=%d path=/%s\n", host, port, path);
     socket_t sockfd = hostname_connect(host, port);
     if (sockfd == INVALID_SOCKET) {
         fprintf(stderr, "Unable to connect to %s:%d\n", host, port);
@@ -498,7 +498,7 @@ easywsclient::WebSocket::pointer from_url(const std::string& url, bool useMask, 
 #else
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 #endif
-    fprintf(stderr, "Connected to: %s\n", url.c_str());
+    //fprintf(stderr, "Connected to: %s\n", url.c_str());
     return easywsclient::WebSocket::pointer(new _RealWebSocket(sockfd, useMask));
 }
 
