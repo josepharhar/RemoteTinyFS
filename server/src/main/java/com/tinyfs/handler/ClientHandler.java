@@ -99,7 +99,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
 
       writeHandler.performWriteRequest(
         writeRequest.getSessionId(),
-        writeRequest.getFile(),
+        writeRequest.getDiskname(),
         writeRequest.getMessage().toByteArray(),
         writeRequest.getOffset());
 
@@ -119,7 +119,7 @@ public class ClientHandler extends BinaryWebSocketHandler {
               .setMessage(ByteString.copyFrom(
                 readHandler.performReadRequest(
                   readRequest.getSessionId(),
-                  readRequest.getFile(),
+                  readRequest.getDiskname(),
                   readRequest.getOffset(),
                   readRequest.getSize())))
               .build()

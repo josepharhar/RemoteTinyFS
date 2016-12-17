@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
-import com.tinyfs.dao.FileConstants;
+import com.tinyfs.dao.DiskConstants;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @RestController
@@ -40,10 +40,10 @@ public class ListDisksHandler {
     ClientCredentials credentials =
         registrationRequestValidator.toClientCredentials(token.getBytes());
 
-    File fileDir = new File(FileConstants.FILE_DIRECTORY);
+    File diskDir = new File(DiskConstants.DISK_DIRECTORY);
 
     try {
-      fileDir.createNewFile();
+      diskDir.createNewFile();
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
@@ -51,8 +51,8 @@ public class ListDisksHandler {
 
     return mapper.writeValueAsString(
       FileUtils.listFiles(
-        new File(FileConstants.FILE_DIRECTORY),
-        new SuffixFileFilter(FileConstants.FILE_EXTENSION),
+        new File(DiskConstants.DISK_DIRECTORY),
+        new SuffixFileFilter(DiskConstants.FILE_EXTENSION),
         new NameFileFilter(credentials.getUsername()))
         .stream()
         .map(File::getName)

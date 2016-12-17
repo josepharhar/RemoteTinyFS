@@ -15,7 +15,7 @@ import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.ImmutableSet;
 
 @Component
-public class HighlyAvailableRemovalListener implements RemovalListener<FileKey, Byte[]> {
+public class HighlyAvailableRemovalListener implements RemovalListener<DiskKey, Byte[]> {
 
   private final Logger LOGGER = LogManager.getLogger(HighlyAvailableRemovalListener.class);
 
@@ -23,22 +23,22 @@ public class HighlyAvailableRemovalListener implements RemovalListener<FileKey, 
     ImmutableSet.of(
       RemovalCause.EXPIRED, RemovalCause.EXPLICIT, RemovalCause.SIZE);
 
-  private final StorageBasedFileAdapter storageBasedFileAdapter;
+  private final StorageBasedDiskAdapter storageBasedDiskAdapter;
 
   @Inject
-  public HighlyAvailableRemovalListener(final StorageBasedFileAdapter storageBasedFileAdapter) {
-    this.storageBasedFileAdapter = storageBasedFileAdapter;
+  public HighlyAvailableRemovalListener(final StorageBasedDiskAdapter storageBasedDiskAdapter) {
+    this.storageBasedDiskAdapter = storageBasedDiskAdapter;
   }
 
   @Override
-  public void onRemoval(final RemovalNotification<FileKey, Byte[]> notification) {
+  public void onRemoval(final RemovalNotification<DiskKey, Byte[]> notification) {
     if (!ACCEPTABLE_CAUSES.contains(notification.getCause())) {
       return;
     }
 
     LOGGER.info(notification.getKey() + " evicted, commiting to storage.");
 
-    storageBasedFileAdapter.writeToFile(
+    storageBasedDiskAdapter.writeToDisk(
       notification.getKey(),
       ArrayUtils.toPrimitive(notification.getValue()),
       0);

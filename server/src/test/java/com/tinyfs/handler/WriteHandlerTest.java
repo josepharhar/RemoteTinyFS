@@ -4,55 +4,55 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.tinyfs.dao.FileKey;
-import com.tinyfs.dao.HighlyAvailableFileAdapter;
+import com.tinyfs.dao.DiskKey;
+import com.tinyfs.dao.HighlyAvailableDiskAdapter;
 import com.tinyfs.dao.HighlyAvailableRemovalListener;
-import com.tinyfs.dao.StorageBasedFileAdapter;
+import com.tinyfs.dao.StorageBasedDiskAdapter;
 
 public class WriteHandlerTest {
   @Test
   public void test() {
-    StorageBasedFileAdapter adapter = new StorageBasedFileAdapter();
+    StorageBasedDiskAdapter adapter = new StorageBasedDiskAdapter();
 
     String testPost = "Test post please ignore.";
 
     HighlyAvailableRemovalListener listener = new HighlyAvailableRemovalListener(adapter);
-    HighlyAvailableFileAdapter cache = new HighlyAvailableFileAdapter(listener, adapter);
+    HighlyAvailableDiskAdapter cache = new HighlyAvailableDiskAdapter(listener, adapter);
 
-    cache.writeToFile(
-      FileKey.builder()
+    cache.writeToDisk(
+      DiskKey.builder()
         .username("avilan")
-        .fileName("TEST")
+        .diskname("TEST")
         .build(),
       testPost.getBytes(),
       17);
-    String readResult = new String(cache.readFromFile(
-      FileKey.builder()
+    String readResult = new String(cache.readFromDisk(
+      DiskKey.builder()
         .username("avilan")
-        .fileName("TEST")
+        .diskname("TEST")
         .build(),
       17,
       testPost.length()));
 
     assertEquals(testPost, readResult);
-    cache.clearFileCache();
+    cache.clearDiskCache();
     test2();
 //    File file = new File("TEST");
 //    file.delete();
   }
 
   public void test2() {
-    StorageBasedFileAdapter adapter = new StorageBasedFileAdapter();
+    StorageBasedDiskAdapter adapter = new StorageBasedDiskAdapter();
 
     String testPost = "Test post please ignore.";
 
     HighlyAvailableRemovalListener listener = new HighlyAvailableRemovalListener(adapter);
-    HighlyAvailableFileAdapter cache = new HighlyAvailableFileAdapter(listener, adapter);
+    HighlyAvailableDiskAdapter cache = new HighlyAvailableDiskAdapter(listener, adapter);
 
-    String readResult = new String(cache.readFromFile(
-      FileKey.builder()
+    String readResult = new String(cache.readFromDisk(
+      DiskKey.builder()
         .username("avilan")
-        .fileName("TEST")
+        .diskname("TEST")
         .build(),
       17,
       testPost.length()));

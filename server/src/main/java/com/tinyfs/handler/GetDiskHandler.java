@@ -7,22 +7,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tinyfs.auth.ClientCredentialsProto.ClientCredentials;
-import com.tinyfs.dao.FileAdapter;
-import com.tinyfs.dao.FileKey;
-import com.tinyfs.dao.HighlyAvailableFileAdapter;
+import com.tinyfs.dao.DiskAdapter;
+import com.tinyfs.dao.DiskKey;
+import com.tinyfs.dao.HighlyAvailableDiskAdapter;
 import com.tinyfs.validation.ClientRegistrationRequestValidator;
 
 @RestController
 public class GetDiskHandler {
 
-  private final FileAdapter fileAdapter;
+  private final DiskAdapter diskAdapter;
   private final ClientRegistrationRequestValidator registrationRequestValidator;
 
   @Inject
   public GetDiskHandler(
-      HighlyAvailableFileAdapter fileAdapter,
+      HighlyAvailableDiskAdapter diskAdapter,
       ClientRegistrationRequestValidator registrationRequestValidator) {
-    this.fileAdapter = fileAdapter;
+    this.diskAdapter = diskAdapter;
     this.registrationRequestValidator = registrationRequestValidator;
   }
 
@@ -33,11 +33,11 @@ public class GetDiskHandler {
     ClientCredentials credentials =
         registrationRequestValidator.toClientCredentials(token.getBytes());
 
-    FileKey fileKey = FileKey.builder()
+    DiskKey diskKey = DiskKey.builder()
       .username(credentials.getUsername())
-      .fileName(disk)
+      .diskname(disk)
       .build();
 
-    return fileAdapter.readFromFile(fileKey, 0, FileAdapter.MAX_FILE_SIZE);
+    return diskAdapter.readFromDisk(diskKey, 0, DiskAdapter.MAX_DISK_SIZE);
   }
 }

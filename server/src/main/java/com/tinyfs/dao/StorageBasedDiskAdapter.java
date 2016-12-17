@@ -13,66 +13,66 @@ import org.springframework.stereotype.Component;
 import com.google.common.base.Throwables;
 
 @Component
-public class StorageBasedFileAdapter implements FileAdapter {
+public class StorageBasedDiskAdapter implements DiskAdapter {
 
-  private final Logger LOGGER = LogManager.getLogger(StorageBasedFileAdapter.class);
+  private final Logger LOGGER = LogManager.getLogger(StorageBasedDiskAdapter.class);
 
   @Override
-  public void writeToFile(
-      final FileKey fileKey,
+  public void writeToDisk(
+      final DiskKey diskKey,
       final byte[] message,
       final int offset) {
-    File file = new File(toFileLocation(fileKey));
+    File file = new File(toDiskLocation(diskKey));
     file.getParentFile().mkdirs();
 
-    boolean newFile = false;
+    boolean newDisk = false;
     try {
-      newFile = file.createNewFile();
+      newDisk = file.createNewFile();
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
     }
 
-    if (newFile) {
-      LOGGER.info("Created file: " + fileKey);
-      writeToFile(
+    if (newDisk) {
+      LOGGER.info("Created file: " + diskKey);
+      writeToDisk(
         file,
         ByteBuffer
-          .allocate(MAX_FILE_SIZE)
+          .allocate(MAX_DISK_SIZE)
           .array(),
         0);
     }
 
     if (message != null) {
-      writeToFile(file, message, offset);
+      writeToDisk(file, message, offset);
     }
   }
 
   @Override
-  public byte[] readFromFile(
-      final FileKey fileKey,
+  public byte[] readFromDisk(
+      final DiskKey diskKey,
       final int offset,
       final int size) {
 
-    File file = new File(toFileLocation(fileKey));
+    File file = new File(toDiskLocation(diskKey));
     file.getParentFile().mkdirs();
 
-    boolean newFile = false;
+    boolean newDisk = false;
     try {
-      LOGGER.info("Created file: " + fileKey);
-      newFile = file.createNewFile();
+      LOGGER.info("Created file: " + diskKey);
+      newDisk = file.createNewFile();
     } catch (IOException e) {
       e.printStackTrace();
       Throwables.propagate(e);
     }
 
-    if (newFile) {
+    if (newDisk) {
       byte[] message = 
         ByteBuffer
-          .allocate(MAX_FILE_SIZE)
+          .allocate(MAX_DISK_SIZE)
           .array();
 
-      writeToFile(
+      writeToDisk(
         file,
         message,
         0);
@@ -98,7 +98,7 @@ public class StorageBasedFileAdapter implements FileAdapter {
     return null;
   }
 
-  private void writeToFile(
+  private void writeToDisk(
       final File file,
       final byte[] message,
       final int offset) {
@@ -111,12 +111,12 @@ public class StorageBasedFileAdapter implements FileAdapter {
     }
   }
 
-  private String toFileLocation(final FileKey fileKey) {
+  private String toDiskLocation(final DiskKey diskKey) {
     return String.format(
       "%s/%s/%s.%s",
-      FileConstants.FILE_DIRECTORY,
-      fileKey.getUsername(),
-      fileKey.getFileName(),
-      FileConstants.FILE_EXTENSION);
+      DiskConstants.DISK_DIRECTORY,
+      diskKey.getUsername(),
+      diskKey.getDiskname(),
+      DiskConstants.FILE_EXTENSION);
   }
 }

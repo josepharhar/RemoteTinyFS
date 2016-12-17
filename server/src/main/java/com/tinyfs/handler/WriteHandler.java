@@ -6,40 +6,40 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.tinyfs.credentials.cache.ClientCacheAdapter;
-import com.tinyfs.dao.FileKey;
-import com.tinyfs.dao.HighlyAvailableFileAdapter;
-import com.tinyfs.exception.UnregisteredFileException;
+import com.tinyfs.dao.DiskKey;
+import com.tinyfs.dao.HighlyAvailableDiskAdapter;
+import com.tinyfs.exception.UnregisteredDiskException;
 
 @Component
 public class WriteHandler {
 
   private final ClientCacheAdapter clientCacheAdapter;
-  private final HighlyAvailableFileAdapter fileAdapter;
+  private final HighlyAvailableDiskAdapter diskAdapter;
 
   @Inject
   public WriteHandler(
       final ClientCacheAdapter clientCacheAdapter,
-      final HighlyAvailableFileAdapter fileAdapter) {
+      final HighlyAvailableDiskAdapter diskAdapter) {
     this.clientCacheAdapter = clientCacheAdapter;
-    this.fileAdapter = fileAdapter;
+    this.diskAdapter = diskAdapter;
   }
 
   public void performWriteRequest(
       final String sessionId,
-      final String filename,
+      final String diskname,
       final byte[] message,
-      final int offset) throws UnregisteredFileException {
+      final int offset) throws UnregisteredDiskException {
     String registeredUser = clientCacheAdapter
       .getRegisteredUsername(sessionId);
 
-    if (StringUtils.isEmpty(filename) || StringUtils.isEmpty(registeredUser)) {
-      throw new UnregisteredFileException();
+    if (StringUtils.isEmpty(diskname) || StringUtils.isEmpty(registeredUser)) {
+      throw new UnregisteredDiskException();
     }
 
-    fileAdapter.writeToFile(
-      FileKey.builder()
+    diskAdapter.writeToDisk(
+      DiskKey.builder()
         .username(registeredUser)
-        .fileName(filename)
+        .diskname(diskname)
         .build(),
       message,
       offset);
