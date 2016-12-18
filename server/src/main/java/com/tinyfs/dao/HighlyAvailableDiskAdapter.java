@@ -14,7 +14,7 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
   private final StorageBasedDiskAdapter storageBasedDiskAdapter;
 
-  private LoadingCache<DiskKey, Byte[]> diskCache;
+  private LoadingCache<DiskKey, Disk> diskCache;
 
   public HighlyAvailableDiskAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
@@ -31,6 +31,7 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
           CacheLoader.from(this::newDisk));
   }
 
+  @Override
   public void writeToDisk(
       final DiskKey diskKey,
       final byte[] message,
@@ -47,6 +48,7 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
     }
   }
 
+  @Override
   public byte[] readFromDisk(
       final DiskKey diskKey,
       final int offset,
@@ -59,6 +61,12 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
     }
 
     return message;
+  }
+
+  @Override
+  public int getDiskSize(final DiskKey diskKey) {
+    Byte[] disk = diskCache.getUnchecked(diskKey);
+    return disk.length();
   }
 
   public void closeDisk(final DiskKey diskKey) {

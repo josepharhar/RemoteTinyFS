@@ -111,12 +111,10 @@ public class StorageBasedDiskAdapter implements DiskAdapter {
     }
   }
 
-  private String toDiskLocation(final DiskKey diskKey) {
-    return String.format(
-      "%s/%s/%s.%s",
-      DiskConstants.DISK_DIRECTORY,
-      diskKey.getUsername(),
-      diskKey.getDiskname(),
-      DiskConstants.FILE_EXTENSION);
+  private Path toDiskPath(final DiskKey diskKey) {
+    return Paths.get(
+        DiskConstants.DISK_DIRECTORY,
+        diskKey.getUsername(),
+        diskKey.getDiskname() + "." + DiskConstants.FILE_EXTENSION);
   }
 }

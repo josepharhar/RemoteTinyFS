@@ -14,4 +14,6 @@ public interface DiskAdapter {
       final DiskKey diskKey,
       final int offset,
       final int size);
+
+  public int getDiskSize(final DiskKey diskKey);
 }

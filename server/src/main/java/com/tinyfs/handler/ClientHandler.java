@@ -128,7 +128,8 @@ public class ClientHandler extends BinaryWebSocketHandler {
       DiskInfoRequest diskInfoRequest =
         operationParameters.unpack(DiskInfoRequest.class);
 
-      session.sendMessage();
+      session.sendMessage(new BinaryMessage(
+          diskInfoHandler.getDiskInfo(diskInfoRequest)));
     } else {
       throw new InvalidArgumentException("Unrecognized operation.");
     }
