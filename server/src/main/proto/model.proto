@@ -66,24 +66,35 @@ message ReadResponse {
   ResponseCode responseCode = 2;
 }
 
-// sessionId:   The unique token given on client registration.
-// diskname:    The name of the disk to be opened.
-// disksize:    The size of the disk in bytes. 0 indicates that the disk
-//              must already exist.
+// sessionId: The unique token given on client registration.
+// diskname:  The name of the disk to be opened.
+// disksize:  The size of the disk to create in bytes. Negative or excessively
+//            large sizes yields undefined behavior.
+// mode:      The "open" operation to be performed.
+//            CREATE: Create a disk if it does not already exist. If a disk
+//                    already exists, then it's size may be increased to
+//                    match "disksize" if it is less than "disksize."
+//            DONT_CREATE: Only open an existing disk, do not create a new one.
+//                         "disksize" is ignored.
 message OpenDiskRequest {
   string sessionId = 1;
   string diskname = 2;
   int32 disksize = 3;
+  enum OpenMode {
+    CREATE = 0;
+    DONT_CREATE = 1;
+  }
+  OpenMode mode = 4;
 }
 
-// disksize:      The size of the opened disk in bytes.
-// responseCode:  SUCCESS on success, or error code on failure.
+// disksize:     The size of the opened disk in bytes.
+// responseCode: SUCCESS on success. DISK_NOT_FOUND if a "DONT_CREATE" request
+//               was sent with no existing disk.
 message OpenDiskResponse {
   int32 disksize = 1;
   enum ResponseCode {
     SUCCESS = 0;
     DISK_NOT_FOUND = 1;
-    //INVALID_DISK_SIZE = 2;
   }
   ResponseCode responseCode = 2;
 }

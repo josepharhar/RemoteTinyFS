@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.apache.logging.log4j.LogManager;
@@ -96,6 +97,13 @@ public class StorageBasedDiskAdapter implements DiskAdapter {
     }
 
     return null;
+  }
+
+  @Override
+  public Byte[] openDisk(
+      final DiskKey diskKey,
+      final int disksize) {
+
   }
 
   private void writeToDisk(

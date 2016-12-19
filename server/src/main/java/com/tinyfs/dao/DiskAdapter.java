@@ -15,5 +15,16 @@ public interface DiskAdapter {
       final int offset,
       final int size);
 
+  public boolean diskExists();
+
+
+
+  public void createDisk(
+      final DiskKey diskKey,
+      final int disksize);
+
+  public int getDiskSize(
+      final DiskKey diskKey);
+
   public int getDiskSize(final DiskKey diskKey);
 }

@@ -171,6 +171,25 @@ int initLibDisk(char* token) {
 int openDisk(char* diskname, int nBytes) {
   CHECK_WEBSOCKET();
 
+  // Cases:
+  //  disk with this name is already loaded:
+  //   return fd
+  //  nBytes = 0 and disk exists on server
+  //   get the nBytes, create new fd, return fd
+  //  nBytes = 0 and disk does not exist on server
+  //   return error
+  //  nBytes = x and disk exists on server
+  //   "If nBytes > BLOCKSIZE and there is already a file by the given filename, that file’s content may be overwritten."
+  //   return error??
+  //   the problem with this is that there is already an existing disk size,
+  //   and you are giving it a potentially conflicting disk size. what if they are different?
+  //   I think it would be best to just open the disk, and take the max(given nBytes, existing nBytes) and potentially create a bigger disk, and return the new nBytes.
+  //  nBytes = x and disk does not exist on server
+  //   create disk, create new fd, return fd
+  
+  // In the case that the disk already exists on the server, we have to know what the size of it is.
+  // In the case that we are creating a new disk, we don't, but we have to send a disk size.
+
   // If the disk is already open, then return it
   for (DiskMap::iterator iter = g_id_to_disk.begin();
       iter != g_id_to_disk.end();
@@ -180,13 +199,49 @@ int openDisk(char* diskname, int nBytes) {
     }
   }
 
+  // Check parameters
+  if (nBytes < 0 || diskname == "") {
+    return LIBDISK_INVALID_PARAMETERS;
+  }
   if (g_next_free_disk_id > MAX_DISKS) {
     return LIBDISK_TOO_MANY_DISKS_OPEN;
   }
 
+  tinyfs::OpenDiskRequest request;
+  request.set_sessionid(g_session_id);
+  request.set_diskname(diskname);
+  request.set_disksize(nBytes);
+  if (nBytes == 0) {
+    request.set_mode(tinyfs::OpenDiskRequest_OpenMode_DONT_CREATE);
+  } else {
+    request.set_mode(tinyfs::OpenDiskRequest_OpenMode_CREATE);
+  }
+
+  switch(SendAndReceive(SerializeRequest(request))) {
+    case SUCCESS:
+      break;
+    case DISCONNECTED:
+      LOGERR("Disconnected from websocket");
+      return LIBDISK_WEBSOCKET_TIMED_OUT;
+    case TIMED_OUT:
+      LOGERR("WebSocket connection timed out");
+      return LIBDISK_WEBSOCKET_DISCONNECTED;
+  }
+
+  tinyfs::OpenDiskResponse response;
+  if (!response.ParseFromString(g_websocket_message)) {
+    LOGERR("Failed to parse data read from websocket");
+    return LIBDISK_WEBSOCKET_BAD_DATA;
+  }
+
+  if (response.responsecode()
+      == tinyfs::OpenDiskResponse_ResponseCode_DISK_NOT_FOUND) {
+    return LIBDISK_DISK_NOT_FOUND;
+  }
+
   Disk new_disk;
   new_disk.name = filename;
-
+  new_disk.nBytes = response.disksize();
   int disk_id = g_next_free_disk_id++;
   g_id_to_disk[disk_id] = new_disk;
 

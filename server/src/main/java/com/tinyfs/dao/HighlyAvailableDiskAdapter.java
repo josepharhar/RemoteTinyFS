@@ -14,7 +14,7 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
   private final StorageBasedDiskAdapter storageBasedDiskAdapter;
 
-  private LoadingCache<DiskKey, Disk> diskCache;
+  private LoadingCache<DiskKey, Byte[]> diskCache;
 
   public HighlyAvailableDiskAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
@@ -64,7 +64,9 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
   }
 
   @Override
-  public int getDiskSize(final DiskKey diskKey) {
+  public int openDiskAndGetSize(
+      final DiskKey diskKey,
+      final int disksize) {
     Byte[] disk = diskCache.getUnchecked(diskKey);
     return disk.length();
   }
@@ -77,7 +79,7 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
     diskCache.invalidateAll();
   }
 
-  private Byte[] newDisk(final DiskKey diskKey) {
+  private Byte[] newDisk(final DiskKey diskKey, final int disksize) {
     byte[] message =
       storageBasedDiskAdapter.readFromDisk(diskKey, 0, MAX_DISK_SIZE);
     Byte[] byteArr = new Byte[message.length];
