@@ -50,3 +50,9 @@ clean:
 
 testDriver: testDriver.cc libDisk.h export
 	gcc $(CFLAGS) $< $(REMOTETINYFS_FLAGS) -o $@
+
+# This target exports files needed for testing to remotetinyfs/tests/
+tests: export tests-makefile libDisk.h
+	cp libDisk.h ../tests/libDisk.h
+	cp tests-makefile ../tests/makefile
+	sed -i '1s@.*@REMOTETINYFS_DIR = $(REMOTETINYFS_DIR)@' ../tests/makefile
