@@ -23,7 +23,7 @@ public class OpenDiskHandler {
     this.diskAdapter = diskAdapter;
   }
 
-  public OpenDiskResponse getOpenDisk(OpenDiskRequest request) {
+  public OpenDiskResponse openDisk(OpenDiskRequest request) {
     String sessionId = request.getSessionId();
     String username = clientCacheAdapter.getRegisteredUsername(sessionId);
     String diskname = request.getDiskname();
@@ -35,7 +35,20 @@ public class OpenDiskHandler {
         .build();
     }
 
-    return OpenDiskResponse.newBuilder()
-      .build();
+    try {
+      int diskSize = diskAdapter.openDisk(
+          diskKey,
+          request.diskSize,
+          request.openMode);
+      return OpenDiskResponse.newBuilder()
+        .diskSize(diskSize)
+        .responseCode(ResponseCode.SUCCESS)
+        .build();
+    } catch (DiskNotFoundException e) {
+      return OpenDiskResponse.newBuilder()
+        .diskSize(-1)
+        .responseCode(ResponseCode.DISK_NOT_FOUND)
+        .build();
+    }
   }
 }

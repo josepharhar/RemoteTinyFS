@@ -124,12 +124,11 @@ public class ClientHandler extends BinaryWebSocketHandler {
                   readRequest.getSize())))
               .build()
               .toByteArray()));
-    } else if (operationParameters.is(DiskInfoRequest.class)) {
-      DiskInfoRequest diskInfoRequest =
-        operationParameters.unpack(DiskInfoRequest.class);
-
+    } else if (operationParameters.is(OpenDiskRequest.class)) {
+      OpenDiskRequest openDiskRequest =
+        operationParameters.unpack(OpenDiskRequest.class);
       session.sendMessage(new BinaryMessage(
-          diskInfoHandler.getDiskInfo(diskInfoRequest)));
+          openDiskHandler.openDisk(openDiskRequest)));
     } else {
       throw new InvalidArgumentException("Unrecognized operation.");
     }

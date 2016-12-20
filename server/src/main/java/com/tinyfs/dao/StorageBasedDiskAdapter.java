@@ -18,105 +18,26 @@ public class StorageBasedDiskAdapter implements DiskAdapter {
 
   private final Logger LOGGER = LogManager.getLogger(StorageBasedDiskAdapter.class);
 
-  @Override
+  // Optional.empty means that the disk does not exist
+  public Optional<Integer> getDiskSize(final DiskKey diskKey) {
+    Path path = toDiskPath(diskKey);
+    Files.createDirectories(path);
+
+    if (!Files.exists(path)) {
+      return Optional.empty();
+    }
+
+    return Optional.of(Files.size(path));
+  }
+
+  public byte[] readFromDisk(final DiskKey diskKey) {
+    return Files.readAllBytes(toDiskPath(diskKey));
+  }
+
   public void writeToDisk(
       final DiskKey diskKey,
-      final byte[] message,
-      final int offset) {
-    File file = new File(toDiskLocation(diskKey));
-    file.getParentFile().mkdirs();
-
-    boolean newDisk = false;
-    try {
-      newDisk = file.createNewFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-      Throwables.propagate(e);
-    }
-
-    if (newDisk) {
-      LOGGER.info("Created file: " + diskKey);
-      writeToDisk(
-        file,
-        ByteBuffer
-          .allocate(MAX_DISK_SIZE)
-          .array(),
-        0);
-    }
-
-    if (message != null) {
-      writeToDisk(file, message, offset);
-    }
-  }
-
-  @Override
-  public byte[] readFromDisk(
-      final DiskKey diskKey,
-      final int offset,
-      final int size) {
-
-    File file = new File(toDiskLocation(diskKey));
-    file.getParentFile().mkdirs();
-
-    boolean newDisk = false;
-    try {
-      LOGGER.info("Created file: " + diskKey);
-      newDisk = file.createNewFile();
-    } catch (IOException e) {
-      e.printStackTrace();
-      Throwables.propagate(e);
-    }
-
-    if (newDisk) {
-      byte[] message = 
-        ByteBuffer
-          .allocate(MAX_DISK_SIZE)
-          .array();
-
-      writeToDisk(
-        file,
-        message,
-        0);
-
-      return Arrays.copyOf(message, size);
-    }
-
-    try (RandomAccessFile raFile = new RandomAccessFile(file, "r")) {
-      byte[] message =
-        ByteBuffer
-          .allocate(size)
-          .array();
-
-      raFile.seek(offset);
-      raFile.read(message);
-
-      return message;
-    } catch (IOException e) {
-      e.printStackTrace();
-      Throwables.propagate(e);
-    }
-
-    return null;
-  }
-
-  @Override
-  public Byte[] openDisk(
-      final DiskKey diskKey,
-      final int disksize) {
-
-  }
-
-  private void writeToDisk(
-      final File file,
-      final byte[] message,
-      final int offset) {
-    try (RandomAccessFile raFile = new RandomAccessFile(file, "rw")) {
-      raFile.seek(offset);
-      raFile.write(message);
-    } catch (IOException e) {
-      e.printStackTrace();
-      Throwables.propagate(e);
-    }
+      final byte[] data) {
+    Files.write(toDiskPath(diskKey), data);
   }
 
   private Path toDiskPath(final DiskKey diskKey) {

@@ -36,12 +36,10 @@ public class HighlyAvailableRemovalListener implements RemovalListener<DiskKey, 
       return;
     }
 
-    LOGGER.info(notification.getKey() + " evicted, commiting to storage.");
+    LOGGER.info("disk \"" + notification.getKey() + "\" evicted, commiting to storage.");
 
     storageBasedDiskAdapter.writeToDisk(
       notification.getKey(),
-      ArrayUtils.toPrimitive(notification.getValue()),
-      0);
+      ArrayUtils.toPrimitive(notification.getValue()));
   }
-
 }

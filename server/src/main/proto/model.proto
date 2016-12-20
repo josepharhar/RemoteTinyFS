@@ -79,7 +79,7 @@ message ReadResponse {
 message OpenDiskRequest {
   string sessionId = 1;
   string diskname = 2;
-  int32 disksize = 3;
+  int32 diskSize = 3;
   enum OpenMode {
     CREATE = 0;
     DONT_CREATE = 1;
@@ -91,7 +91,7 @@ message OpenDiskRequest {
 // responseCode: SUCCESS on success. DISK_NOT_FOUND if a "DONT_CREATE" request
 //               was sent with no existing disk.
 message OpenDiskResponse {
-  int32 disksize = 1;
+  int32 diskSize = 1;
   enum ResponseCode {
     SUCCESS = 0;
     DISK_NOT_FOUND = 1;

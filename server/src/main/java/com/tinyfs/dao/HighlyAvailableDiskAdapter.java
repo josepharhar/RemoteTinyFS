@@ -8,7 +8,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-public class HighlyAvailableDiskAdapter implements DiskAdapter {
+public class HighlyAvailableDiskAdapter {
 
   @SuppressWarnings("unused")
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
@@ -31,24 +31,17 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
           CacheLoader.from(this::newDisk));
   }
 
-  @Override
   public void writeToDisk(
       final DiskKey diskKey,
       final byte[] message,
       final int offset) {
-    try {
-      Byte[] disk = diskCache.get(diskKey);
+    Byte[] disk = diskCache.getUnchecked(diskKey);
 
-      for (int i = 0; i < message.length; i++) {
-        disk[offset + i] = message[i];
-      }
-    } catch (ExecutionException e) {
-      e.printStackTrace();
-      Throwables.propagate(e);
+    for (int i = 0; i < message.length; i++) {
+      disk[offset + i] = message[i];
     }
   }
 
-  @Override
   public byte[] readFromDisk(
       final DiskKey diskKey,
       final int offset,
@@ -61,14 +54,46 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
     }
 
     return message;
+
+    // If the disk is in the cache, get it
+    // else, get the disk from storage if it exists in storage (throw exception) and put into cache
+    // then return byte[]
   }
 
-  @Override
-  public int openDiskAndGetSize(
+  public int openDisk(
       final DiskKey diskKey,
-      final int disksize) {
-    Byte[] disk = diskCache.getUnchecked(diskKey);
-    return disk.length();
+      final int diskSize,
+      final OpenMode openMode) {
+    Byte[] disk = diskCache.getIfPresent(diskKey);
+    if (disk != null) {
+      return disk.length;
+    }
+
+    // disk isn't in cache. but is it in storage?
+    Optional<Integer> existingDiskSize = storageBasedDiskAdapter.getDiskSize(diskKey);
+    if (existingDiskSize.isEmpty()) {
+      // disk does not exist.
+      if (openMode == OpenMode.DONT_CREATE) {
+        throw new DiskNotFoundException();
+      }
+      // disk needs to be created
+      diskCache.put(diskKey, new Byte[diskSize]);
+      return diskSize;
+    }
+
+    // disk is in storage, expand its size if needed
+    // we could do this by loading it into the cache, then expanding its size
+    if (existingDiskSize.get() < diskSize) {
+      disk = diskCache.getUnchecked(diskKey);
+      Byte[] newDisk = new Byte[diskSize];
+      for (int i = 0; i < disk.length; i++) {
+        newDisk[i] = disk[i];
+      }
+      for (int i = disk.length; i < newDisk.length; i++) {
+        newDisk[i] = 0;
+      }
+      diskCache.put(diskKey, newDisk);
+    }
   }
 
   public void closeDisk(final DiskKey diskKey) {
@@ -79,11 +104,16 @@ public class HighlyAvailableDiskAdapter implements DiskAdapter {
     diskCache.invalidateAll();
   }
 
-  private Byte[] newDisk(final DiskKey diskKey, final int disksize) {
-    byte[] message =
-      storageBasedDiskAdapter.readFromDisk(diskKey, 0, MAX_DISK_SIZE);
-    Byte[] byteArr = new Byte[message.length];
+  private Byte[] newDisk(final DiskKey diskKey) {
+    // A disk is not in the cache, and may or may not be on disk.
+    Optional<Integer> diskSize = getDiskSize(diskKey);
+    if (diskSize.isEmpty()) {
+      throw new DiskNotFoundException();
+    }
 
+    byte[] message = storageBasedDiskAdapter.readFromDisk(diskKey);
+
+    Byte[] byteArr = new Byte[message.length];
     for (int i = 0; i < message.length; i++) {
       byteArr[i] = new Byte(message[i]);
     }
