@@ -1,4 +1,4 @@
-LIBDISK_ADDRESS = <insert_address_here>
+LIBDISK_ADDRESS = \"localhost:8080\"
 ifeq ($(LIBDISK_ADDRESS),<insert_address_here>)
 $(error Remote disk server address not set. Did you run set-server-address.sh?)
 endif

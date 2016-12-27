@@ -1,5 +1,0 @@
-REMOTETINYFS_DIR = /home/jarhar/remotetinyfs-bin64
-REMOTETINYFS_FLAGS = -L$(REMOTETINYFS_DIR) -L$(REMOTETINYFS_DIR)/lib -Wl,-rpath,$(REMOTETINYFS_DIR):$(REMOTETINYFS_DIR)/lib -lDisk
-
-%: %.c
-	gcc $< $(REMOTETINYFS_FLAGS) -o $@

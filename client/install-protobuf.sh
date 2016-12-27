@@ -22,6 +22,7 @@ if [ ! -d $PROTOBUF_SRC_DIR ]; then
 fi
 
 # compile protobuf from source
+# Ubuntu: sudo apt-get install autoconf automake libtool curl make g++ unzip pkg-config
 cd $PROTOBUF_SRC_DIR
 ./autogen.sh
 # ./configure required user input on the CSL because of a pax warning

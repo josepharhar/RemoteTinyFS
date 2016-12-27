@@ -10,9 +10,9 @@ if [ -z $1 ]; then
   exit 1
 fi
 
-for testFile in *.c; do
+for testFile in *.cc; do
   testName="${testFile%.*}"
-  bash run-test.sh $testName $1
+  bash run-test.bash $testName $1
   #if [ $? != 0 ]; then
     # test failed. should we exit here?
   #fi
