@@ -1,4 +1,7 @@
-LIBDISK_ADDRESS = \"home.arhar.net:4880\"
+LIBDISK_ADDRESS = <insert_address_here>
+ifeq ($(LIBDISK_ADDRESS),<insert_address_here>)
+$(error Remote disk server address not set. Did you run set-server-address.sh?)
+endif
 
 ARCH := $(shell getconf LONG_BIT)
 REMOTETINYFS_DIR = $(HOME)/remotetinyfs-bin$(ARCH)
