@@ -5,6 +5,9 @@ endif
 
 ARCH := $(shell getconf LONG_BIT)
 REMOTETINYFS_DIR = $(HOME)/remotetinyfs-bin$(ARCH)
+ifeq ("$(wildcard $(REMOTETINYFS_DIR))","")
+$(error Output directory $(REMOTETINYFS_DIR) does not exist. Did you run install-protobuf.sh?)
+endif
 
 REMOTETINYFS_FLAGS = -L$(REMOTETINYFS_DIR) -L$(REMOTETINYFS_DIR)/lib -Wl,-rpath,$(REMOTETINYFS_DIR):$(REMOTETINYFS_DIR)/lib -lDisk
 
