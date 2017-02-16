@@ -7,7 +7,7 @@ import lombok.Value;
 @Value
 @Builder
 @EqualsAndHashCode
-public class FileKey {
+public class DiskKey {
   private final String username;
-  private final String fileName;
+  private final String diskname;
 }

@@ -207,7 +207,7 @@ int readBlock(int disk_id, int bNum, void* block) {
 
   tinyfs::ReadRequest request;
   request.set_sessionid(g_session_id);
-  request.set_file(disk.name);
+  request.set_diskname(disk.name);
   request.set_offset(BLOCKSIZE * bNum);
   request.set_size(BLOCKSIZE);
 
@@ -255,7 +255,7 @@ int writeBlock(int disk_id, int bNum, void* block) {
 
   tinyfs::WriteRequest request;
   request.set_sessionid(g_session_id);
-  request.set_file(disk.name);
+  request.set_diskname(disk.name);
   request.set_message(block, BLOCKSIZE);
   request.set_offset(BLOCKSIZE * bNum);
 

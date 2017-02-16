@@ -28,11 +28,11 @@ message ClientRegistrationResponse {
 }
 
 // sessionId:   The unique token given on client registration.
-// file:        The target file to write to.
+// diskname:    The target disk to write to.
 // message:     The entire message to write (no random access yet).
 message WriteRequest {
   string sessionId = 1;
-  string file = 2;
+  string diskname = 2;
   bytes message = 3;
   int32 offset = 4;
 }
@@ -46,12 +46,12 @@ message WriteResponse {
 }
 
 // sessionId:   The unique token given on client registration.
-// file:        The target file to write to.
-// offset:      The offset in the file system to read from.
-// size:        The size, in number of bytes, to read from the file system.
+// diskname:    The target disk to write to.
+// offset:      The offset in bytes in the disk to read from.
+// size:        The size, in number of bytes, to read from the disk.
 message ReadRequest {
   string sessionId = 1;
-  string file = 2;
+  string diskname = 2;
   int32 offset = 3;
   int32 size = 4;
 }

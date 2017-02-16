@@ -8,38 +8,38 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-public class HighlyAvailableFileAdapter implements FileAdapter {
+public class HighlyAvailableDiskAdapter implements DiskAdapter {
 
   @SuppressWarnings("unused")
   private final HighlyAvailableRemovalListener highlyAvailableRemovalListener;
-  private final StorageBasedFileAdapter storageBasedFileAdapter;
+  private final StorageBasedDiskAdapter storageBasedDiskAdapter;
 
-  private LoadingCache<FileKey, Byte[]> fileCache;
+  private LoadingCache<DiskKey, Byte[]> diskCache;
 
-  public HighlyAvailableFileAdapter(
+  public HighlyAvailableDiskAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
-      final StorageBasedFileAdapter storageBasedFileAdapter) {
+      final StorageBasedDiskAdapter storageBasedDiskAdapter) {
     this.highlyAvailableRemovalListener = highlyAvailableRemovalListener;
-    this.storageBasedFileAdapter = storageBasedFileAdapter;
+    this.storageBasedDiskAdapter = storageBasedDiskAdapter;
 
-    this.fileCache =
+    this.diskCache =
       CacheBuilder.newBuilder()
         .maximumSize(100)
         .expireAfterWrite(5, TimeUnit.MINUTES)
         .removalListener(highlyAvailableRemovalListener)
-        .<FileKey, Byte[]> build(
-          CacheLoader.from(this::newFile));
+        .<DiskKey, Byte[]> build(
+          CacheLoader.from(this::newDisk));
   }
 
-  public void writeToFile(
-      final FileKey fileKey,
+  public void writeToDisk(
+      final DiskKey diskKey,
       final byte[] message,
       final int offset) {
     try {
-      Byte[] file = fileCache.get(fileKey);
+      Byte[] disk = diskCache.get(diskKey);
 
       for (int i = 0; i < message.length; i++) {
-        file[offset + i] = message[i];
+        disk[offset + i] = message[i];
       }
     } catch (ExecutionException e) {
       e.printStackTrace();
@@ -47,31 +47,31 @@ public class HighlyAvailableFileAdapter implements FileAdapter {
     }
   }
 
-  public byte[] readFromFile(
-      final FileKey fileKey,
+  public byte[] readFromDisk(
+      final DiskKey diskKey,
       final int offset,
       final int size) {
-    Byte[] file = fileCache.getUnchecked(fileKey);
+    Byte[] disk = diskCache.getUnchecked(diskKey);
 
     byte[] message = new byte[size];
     for (int i = 0; i < size; i++) {
-      message[i] = file[offset + i];
+      message[i] = disk[offset + i];
     }
 
     return message;
   }
 
-  public void closeFile(final FileKey fileKey) {
-    fileCache.invalidate(fileKey);
+  public void closeDisk(final DiskKey diskKey) {
+    diskCache.invalidate(diskKey);
   }
 
-  public void clearFileCache() {
-    fileCache.invalidateAll();
+  public void clearDiskCache() {
+    diskCache.invalidateAll();
   }
 
-  private Byte[] newFile(final FileKey fileKey) {
+  private Byte[] newDisk(final DiskKey diskKey) {
     byte[] message =
-      storageBasedFileAdapter.readFromFile(fileKey, 0, MAX_FILE_SIZE);
+      storageBasedDiskAdapter.readFromDisk(diskKey, 0, MAX_DISK_SIZE);
     Byte[] byteArr = new Byte[message.length];
 
     for (int i = 0; i < message.length; i++) {

@@ -3,16 +3,16 @@ package com.tinyfs.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tinyfs.dao.HighlyAvailableFileAdapter;
+import com.tinyfs.dao.HighlyAvailableDiskAdapter;
 import com.tinyfs.dao.HighlyAvailableRemovalListener;
-import com.tinyfs.dao.StorageBasedFileAdapter;
+import com.tinyfs.dao.StorageBasedDiskAdapter;
 
 @Configuration
 public class DaoConfig {
-  @Bean(destroyMethod = "clearFileCache")
-  public HighlyAvailableFileAdapter highlyAvailableFileAdapter(
+  @Bean(destroyMethod = "clearDiskCache")
+  public HighlyAvailableDiskAdapter highlyAvailableDiskAdapter(
       final HighlyAvailableRemovalListener highlyAvailableRemovalListener,
-      final StorageBasedFileAdapter storageBasedFileAdapter) {
-    return new HighlyAvailableFileAdapter(highlyAvailableRemovalListener, storageBasedFileAdapter);
+      final StorageBasedDiskAdapter storageBasedDiskAdapter) {
+    return new HighlyAvailableDiskAdapter(highlyAvailableRemovalListener, storageBasedDiskAdapter);
   }
 }
